@@ -3,11 +3,12 @@ name = "fanuc-file-generator"
 version = "0.1.0"
 description = ""
 authors = [
-    {name = "Alexis",email = "algo4203@gmail.com"}
+    {name = "Alexis GOSETTO",email = "algo4203@gmail.com"}
 ]
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "customtkinter (>=5.2.2,<6.0.0)"
 ]
 
 [tool.poetry]

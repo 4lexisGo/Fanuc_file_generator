@@ -104,6 +104,8 @@ class LSFileEditer:
         """
         output_lines = []
         i = 1
+        
+        rules = line.startswith(("J ", "L ")) or line.startswith(f"CALL TOOL")
                 
         for line in input_lines:
             # Suppression des lignes contenant les memos d'init
@@ -111,7 +113,7 @@ class LSFileEditer:
                 continue
             else:
                 # Ajout de mémos d'init avant et après chaque ligne de mouvement
-                if line.startswith(("J ", "L ")) or line.startswith(f"CALL TOOL"):
+                if rules:
                     output_lines.append(f"R[{self.register_number}]={i-0.5}")
                     output_lines.append(line)
                     output_lines.append(f"R[{self.register_number}]={i}")

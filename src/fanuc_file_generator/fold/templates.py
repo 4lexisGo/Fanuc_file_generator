@@ -1,3 +1,5 @@
+
+
 class InitGenerator:
     """
     Génère un programme d'init pour le robot à partir d'une liste de points

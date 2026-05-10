@@ -1,4 +1,4 @@
-from fanuc_builder.ls_generator.templates import FanucGenerator
+from fanuc_file_generator.ls_generator.templates import FanucGenerator
     
 class Renishaw:
     """

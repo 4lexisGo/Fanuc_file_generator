@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from fanuc_builder.utils.dialogs import select_folder
+from fanuc_file_generator.ui.dialogs import select_folder
 
 
 # =========================
@@ -179,3 +179,18 @@ if __name__ == "__main__":
 
     app = App()
     app.mainloop()
+    
+# Liste des programmes de mouvement (génération programmes init)
+#   - registre memo programme en cours
+
+# Liste des regles de keep_mn
+#   - type de mouvement (J, L, C...)
+#   - registre memo init
+#   - position registre
+#   - programme de calcul
+#   - programme de controle pince
+
+
+
+
+
