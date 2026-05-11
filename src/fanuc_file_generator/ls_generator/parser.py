@@ -5,9 +5,38 @@ class LSFileFilter:
     Traitement et filtre de fichiers LS
     """
 
-    def __init__(self, register_number):
+    def __init__(self, register_number, rules_calcul=[], rules_pince=[]):
         self.register_number = register_number
         self.offset = -1
+        
+        self.rules_calcul = rules_calcul
+        self.rules_pince = rules_pince
+        
+    def is_mouvement(self, content, mouvement_rules=("J ", "L ")):
+        return content.startswith(mouvement_rules)
+    
+    def is_register(self, content, register_number):
+        return content.startswith((f"R[{register_number}:", f"R[{register_number}]"))
+    
+    def is_pos_register(self, content, register_number):
+        return content.startswith("PR[")
+        #return content.startswith((f"PR[{register_number}:", f"PR[{register_number}]"))
+
+    def is_calcul_programme(self, content, liste, exception=False):
+        if exception:
+            if content.startswtih("CALL CALC"):
+                return True
+        for i in liste:
+            if content == f"CALL {i}":
+                return True
+    
+    def is_mouvement_pince(self, content, liste, exception=False):
+        if exception:
+            if content.startswtih("CALL TOOL"):
+                return True
+        for i in liste:
+            if content == f"CALL {i}":
+                return True
 
     def strip_line_number(self, line):
         """
@@ -135,11 +164,11 @@ class LSFileFilter:
         Règles de sélection pour la section MN
         """
         return (
-            content.startswith(("J ", "L "))
-            or content.startswith((f"R[{self.register_number}:", f"R[{self.register_number}]"))
-            or content.startswith(f"PR[")
-            or content.startswith(f"CALL CALC")
-            or content.startswith(f"CALL TOOL")
+            self.is_mouvement(content)
+            or self.is_register(content, self.register_number)
+            or self.is_pos_register(content)
+            or self.is_calcul_programme(content, self.rules_calcul)
+            or self.is_mouvement_pince(content, self.rules_pince)
         )
 
     def should_keep_mn(self, line, next_line):

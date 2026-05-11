@@ -10,23 +10,35 @@ memo_programme = 38
 memo_init = 66
 numero_alarme = 99
 
-PATH_SOURCE = Path(r"C:/Users/algo4/Desktop/TEST_INIT/SOURCE")
-PATH_DESTINATION = Path(r"C:/Users/algo4/Desktop/TEST_INIT/DESTINATION")
+PATH_GLOBAL = Path(r"C:/Users/algo4/Desktop/TEST_INIT")
+
+PATH_SOURCE = PATH_GLOBAL/"SOURCE"
+PATH_CALCUL = PATH_GLOBAL/"CALCUL"
+PATH_PINCE = PATH_GLOBAL/"PINCE"
+PATH_DESTINATION = PATH_GLOBAL/"DESTINATION"
 
 # Vérifie que le dossier source existe
 if not PATH_SOURCE.exists():
     raise FileNotFoundError(f"Le dossier source n'existe pas : {PATH_SOURCE}")
+
+# Vérifie que le dossier calcul existe
+if not PATH_CALCUL.exists():
+    raise FileNotFoundError(f"Le dossier calcul n'existe pas : {PATH_CALCUL}")
+
+# Vérifie que le dossier pince existe
+if not PATH_PINCE.exists():
+    raise FileNotFoundError(f"Le dossier pince n'existe pas : {PATH_PINCE}")
 
 # Crée le dossier destination s'il n'existe pas
 PATH_DESTINATION.mkdir(exist_ok=True)
 
 # Récupération des fichiers
 liste_programme = get_fichiers(PATH_SOURCE)
+liste_calcul = get_fichiers(PATH_CALCUL)
+liste_pince = get_fichiers(PATH_PINCE)
 
 # Résultats
-liste_objet_programme = []
 liste_nom_programme = []
-liste_mn_lines = []
 liste_value_memo_programme = []
 
 for programme in liste_programme:
@@ -44,19 +56,15 @@ for programme in liste_programme:
     if last_value is None:
         print(f"{programme.name} : absence de registre")
         continue
-    else:
-        last_value = int(last_value)
     
-    if last_value == 4 and False:
-        for line in mn_lines:
-            print(line)
+    last_value = int(last_value)
 
     # Stockage
     liste_nom_programme.append(programme.stem)
     liste_value_memo_programme.append(last_value)
     
     # Création de l'objet parser
-    obj = LSFileFilter(memo_init)
+    obj = LSFileFilter(memo_init, liste_calcul, liste_pince)
 
     # Extraction des lignes MN
     mn_lines = obj.keep_mn(programme)
