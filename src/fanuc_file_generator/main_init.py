@@ -83,7 +83,7 @@ for programme in liste_programme:
     liste_bloc, liste_valeur_registre, liste_offset = obj.extract_blocks_table(mn_lines)
     obj1.structure_select(liste_valeur_registre, liste_offset)
     for i, bloc in enumerate(liste_bloc):
-        obj1.structure_indiv(i, bloc)
+        obj1.structure_indiv(i+1, bloc)
 
     # Construction du sous programme d'init
     obj3 = LSFileBuilder(
