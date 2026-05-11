@@ -95,7 +95,7 @@ class LSFileEditer:
     def __init__(self, filepath):
         self.filepath = filepath
         
-    def overwrite_mn_memo(self, input_lines):
+    def overwrite_mn_memo(self, input_lines, register_number):
         """
         Réécrit les mémos d'init autour des lignes de mouvement en fonction de leur position dans la séquence
          - Avant chaque ligne de mouvement : R[register_number] = i-0.5
@@ -104,19 +104,17 @@ class LSFileEditer:
         """
         output_lines = []
         i = 1
-        
-        rules = line.startswith(("J ", "L ")) or line.startswith(f"CALL TOOL")
                 
         for line in input_lines:
             # Suppression des lignes contenant les memos d'init
-            if line.startswith((f"R[{self.register_number}:", f"R[{self.register_number}]")):
+            if line.startswith((f"R[{register_number}:", f"R[{register_number}]")):
                 continue
             else:
                 # Ajout de mémos d'init avant et après chaque ligne de mouvement
-                if rules:
-                    output_lines.append(f"R[{self.register_number}]={i-0.5}")
+                if line.startswith(("J ", "L ")) or line.startswith(f"CALL TOOL"):
+                    output_lines.append(f"R[{register_number}]={i-0.5}")
                     output_lines.append(line)
-                    output_lines.append(f"R[{self.register_number}]={i}")
+                    output_lines.append(f"R[{register_number}]={i}")
                     i += 1
                 # Lignes normales
                 else:

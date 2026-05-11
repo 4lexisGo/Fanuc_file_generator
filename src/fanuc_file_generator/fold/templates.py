@@ -41,7 +41,7 @@ class InitGenerator:
             ""
             ])
 
-        return bloc
+        self.bloc.extend(bloc)
     
     def structure_select_main(self, liste_numero, liste_nom_programme):
         """

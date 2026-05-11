@@ -196,7 +196,7 @@ class LSFileFilter:
                             
                         # Modification des paramètres de mouvements (vitesse, cnt etc...)
                         elif stripped.startswith(("J ", "L ")):
-                            line = self.modify_line(stripped)
+                            stripped = self.modify_line(stripped)
 
                         # Ajout de la ligne
                         output_lines.append(stripped)
