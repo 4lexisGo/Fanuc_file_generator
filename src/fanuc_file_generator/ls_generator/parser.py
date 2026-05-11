@@ -19,7 +19,7 @@ class LSFileFilter:
         # enlève espaces début/fin + ';' final
         return line.strip().rstrip(";").strip()
 
-    def search_memo_init_(self, line, expected_index):
+    def search_memo(self, line, expected_index):
         """
         Vérifie si la ligne correspond à une instruction d'init de type :
         R[expected_index:...] = value

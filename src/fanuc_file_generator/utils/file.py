@@ -1,4 +1,4 @@
-
+from pathlib import Path
 
 class FileContext:
     """
@@ -20,3 +20,25 @@ class FileContext:
 
     def strip(self, line):
         return line.strip()
+    
+def get_fichiers(dossier, extensions=[".LS"]):
+    """
+    Retourne les fichiers ayant certaines extensions dans un dossier.
+
+    :param dossier: chemin du dossier (str ou Path)
+    :param extensions: liste d'extensions par défaut : [".LS"]
+    :return: liste des fichiers correspondants
+    """
+
+
+    # normalise les extensions en majuscules
+    extensions = [ext.upper() for ext in extensions]
+
+    dossier = Path(dossier)
+
+    fichiers = []
+    for fichier in dossier.iterdir():
+        if fichier.is_file() and fichier.suffix.upper() in extensions:
+            fichiers.append(fichier)
+
+    return fichiers

@@ -42,6 +42,31 @@ class InitGenerator:
             ])
 
         return bloc
+    
+    def structure_select_main(self, liste_numero, liste_nom_programme):
+        """
+        
+        """
+        # Deuxième select pour arrêt pointé
+        for i, value in enumerate(liste_numero):
+            pattern = f"={value},CALL {liste_nom_programme[i]}"
+            if value == liste_numero[0]:
+                self.bloc.append(f"SELECT R[{self.memo_positon}]{pattern}")
+                continue
+            
+            self.bloc.append(f"       {pattern}")
+            
+        self.bloc.append("")
+
+        self.bloc.extend([
+            f"GO[1]={self.numero_alarme}",
+            "PAUSE",
+            "GO[1]=0",
+            "JMP LBL[998]",
+            "",
+            "!Début des trajectoires",
+            ""
+        ])
 
     def structure_select(self, liste_numero_positon, offset):
         """
