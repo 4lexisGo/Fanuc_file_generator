@@ -21,13 +21,14 @@ class FileContext:
     def strip(self, line):
         return line.strip()
     
-def get_fichiers(dossier, extensions=[".LS"]):
+def get_fichiers(dossier, extensions=[".LS"], root=False, extension=False):
     """
     Retourne les fichiers ayant certaines extensions dans un dossier.
 
     :param dossier: chemin du dossier (str ou Path)
     :param extensions: liste d'extensions par défaut : [".LS"]
     :return: liste des fichiers correspondants
+
     """
 
 
@@ -39,6 +40,11 @@ def get_fichiers(dossier, extensions=[".LS"]):
     fichiers = []
     for fichier in dossier.iterdir():
         if fichier.is_file() and fichier.suffix.upper() in extensions:
-            fichiers.append(fichier)
+            if root:
+                fichiers.append(fichier)
+            elif extension:
+                fichiers.append(fichier.name)
+            else:
+                fichiers.append(fichier.stem)
 
     return fichiers

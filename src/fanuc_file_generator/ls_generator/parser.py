@@ -18,9 +18,8 @@ class LSFileFilter:
     def is_register(self, content, register_number):
         return content.startswith((f"R[{register_number}:", f"R[{register_number}]"))
     
-    def is_pos_register(self, content, register_number):
+    def is_pos_register(self, content):
         return content.startswith("PR[")
-        #return content.startswith((f"PR[{register_number}:", f"PR[{register_number}]"))
 
     def is_calcul_programme(self, content, liste, exception=False):
         if exception:
@@ -90,15 +89,19 @@ class LSFileFilter:
     
     def is_tool_called(self, block):
         """
-        Retourne True si le bloc contient un appel à un outil (CALL TOOL), sinon False
+        Retourne True si le bloc contient un appel
+        à un outil autorisé.
         """
-        pattern = "CALL TOOL"
+
+        pattern = r"CALL\s+(.+)"
 
         for line in block:
             match = re.search(pattern, line)
             if match:
-                return True
-        
+                tool_name = match.group(1).strip()
+                if tool_name in self.rules_pince:
+                    return True
+
         return False
     
     def modify_speed(self, line, l_speed=100, j_speed=10):

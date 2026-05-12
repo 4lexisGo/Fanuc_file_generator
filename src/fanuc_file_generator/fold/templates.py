@@ -15,8 +15,6 @@ class InitGenerator:
         self.bloc = [
         "!Init généré automatiquement",
         f"!programme référence {name_prog}",
-        "",
-        "LBL[998]",
         ""
         ]
         
@@ -47,6 +45,10 @@ class InitGenerator:
         """
         
         """
+        self.bloc.extend([
+            "LBL[998]",
+            ""
+        ])
         # Deuxième select pour arrêt pointé
         for i, value in enumerate(liste_numero):
             pattern = f"={value},CALL {liste_nom_programme[i]}"
@@ -82,7 +84,11 @@ class InitGenerator:
             
             self.bloc.append(f"       {pattern}")
             
-        self.bloc.append("")
+        self.bloc.extend([
+            "",
+            "LBL[998]",
+            ""
+        ])
 
         # Deuxième select pour arrêt pointé
         for i, value in enumerate(liste_numero_positon):

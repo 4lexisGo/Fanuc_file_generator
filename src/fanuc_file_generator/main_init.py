@@ -9,8 +9,13 @@ from pathlib import Path
 memo_programme = 38
 memo_init = 66
 numero_alarme = 99
+memo_piece = 99
+memo_prehenseur = 98
 
-PATH_GLOBAL = Path(r"C:/Users/algo4/Desktop/TEST_INIT")
+programme_prehenseur = "CHANG_OUTIL"
+programme_rebut = "REBUT"
+
+PATH_GLOBAL = Path(r"C:/Users/alexis.gosetto/OneDrive - GROUPE SAB/Bureau/TEST_INIT")
 
 PATH_SOURCE = PATH_GLOBAL/"SOURCE"
 PATH_CALCUL = PATH_GLOBAL/"CALCUL"
@@ -33,7 +38,7 @@ if not PATH_PINCE.exists():
 PATH_DESTINATION.mkdir(exist_ok=True)
 
 # Récupération des fichiers
-liste_programme = get_fichiers(PATH_SOURCE)
+liste_programme = get_fichiers(PATH_SOURCE, root=True)
 liste_calcul = get_fichiers(PATH_CALCUL)
 liste_pince = get_fichiers(PATH_PINCE)
 
@@ -44,13 +49,13 @@ liste_value_memo_programme = []
 for programme in liste_programme:
 
     # Création de l'objet parser
-    obj = LSFileFilter(memo_programme)
+    sub_obj = LSFileFilter(memo_programme)
 
     # Extraction des lignes MN
-    mn_lines = obj.keep_mn(programme, rule=False)
+    mn_lines = sub_obj.keep_mn(programme, rule=False)
 
     # Récupération de la dernière valeur du registre
-    last_value = obj.get_last_r_value(mn_lines, memo_programme)
+    last_value = sub_obj.get_last_r_value(mn_lines, memo_programme)
             
     # Vérifie la conformité du programme
     if last_value is None:
@@ -70,7 +75,7 @@ for programme in liste_programme:
     mn_lines = obj.keep_mn(programme)
             
     # Création du sous programme init
-    obj1 = InitGenerator(f"INT_{programme.stem}", memo_init, numero_alarme)
+    obj1 = InitGenerator(f"{programme.stem}", memo_init, numero_alarme)
 
     # Tri des lignes MN et POS du programme d'origine
     pos_lines = obj.keep_pos(programme)
@@ -104,7 +109,13 @@ init_principale.structure_select_main(
     liste_nom_programme
 )
 init_principale.add_bloc_end()
-init_principale.add_bloc([f"R[{memo_init}]=0"])
+init_principale.add_bloc([
+    f"R[{memo_programme}]=0",
+    f"R[{memo_init}]=0",
+    f"IF R[{memo_piece}]<>0,CALL {programme_rebut}",
+    f"R[{memo_prehenseur}]=0",
+    f"CALL {programme_prehenseur}"
+    ])
 
 init_principale_file = LSFileBuilder(name="INIT_SAB01", comment="Génération auto", output_dir=PATH_DESTINATION)
 init_principale_file.add_mn_lines(init_principale.bloc)
