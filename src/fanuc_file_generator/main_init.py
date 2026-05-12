@@ -15,7 +15,7 @@ memo_prehenseur = 98
 programme_prehenseur = "CHANG_OUTIL"
 programme_rebut = "REBUT"
 
-PATH_GLOBAL = Path(r"C:/Users/alexis.gosetto/OneDrive - GROUPE SAB/Bureau/TEST_INIT")
+PATH_GLOBAL = Path(r"TEST_INIT")
 
 PATH_SOURCE = PATH_GLOBAL/"SOURCE"
 PATH_CALCUL = PATH_GLOBAL/"CALCUL"
