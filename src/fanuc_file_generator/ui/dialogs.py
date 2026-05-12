@@ -1,11 +1,14 @@
 from tkinter import filedialog
 
-def select_folder(entry_widget):
+def select_folder(entry):
+    path = filedialog.askdirectory()
+    if path:
+        entry.delete(0, "end")
+        entry.insert(0, path)
 
-    folder = filedialog.askdirectory()
 
-    if folder:
-        entry_widget.delete(0, "end")
-        entry_widget.insert(0, folder)
-        
-    return folder
+def select_file(entry):
+    path = filedialog.askopenfilename()
+    if path:
+        entry.delete(0, "end")
+        entry.insert(0, path)

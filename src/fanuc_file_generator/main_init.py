@@ -70,9 +70,6 @@ for programme in liste_programme:
     
     # Création de l'objet parser
     obj = LSFileFilter(memo_init, liste_calcul, liste_pince)
-
-    # Extraction des lignes MN
-    mn_lines = obj.keep_mn(programme)
             
     # Création du sous programme init
     obj1 = InitGenerator(f"{programme.stem}", memo_init, numero_alarme)
@@ -81,9 +78,13 @@ for programme in liste_programme:
     pos_lines = obj.keep_pos(programme)
 
     # Edition des registres d'init sur les lignes MN triées
+    mn_lines = obj.keep_mn(programme, rule=False)
     obj2 = LSFileEditer(programme)
     mn_lines = obj2.overwrite_mn_memo(mn_lines, memo_init, liste_pince)
     obj2.overwrite_mn(mn_lines)
+    
+    # Extraction des lignes MN
+    mn_lines = obj.keep_mn(programme)
     
     # Construction finales de la section MN
     liste_bloc, liste_valeur_registre, liste_offset = obj.extract_blocks_table(mn_lines)
