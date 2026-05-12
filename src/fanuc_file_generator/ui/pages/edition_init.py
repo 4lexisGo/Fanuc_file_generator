@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from utils.dialogs import select_file
+from fanuc_file_generator.ui.dialogs import select_file
 
 
 class EditionInitPage(ctk.CTkFrame):
