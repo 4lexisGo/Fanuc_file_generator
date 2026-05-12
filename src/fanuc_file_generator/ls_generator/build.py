@@ -64,7 +64,7 @@ class LSFileBuilder:
         """
         for line in lines:
             # Incrément de la ligne si elle ne commence pas par une instruction de mouvement
-            if not line.startswith(("J ", "L ", "C ", "A ")):
+            if not line.startswith(("J ", "L ")):
                 line = "  " + line
             self.mn.append(f"{len(self.mn):>4}:{line}    ;")
 
@@ -95,7 +95,7 @@ class LSFileEditer:
     def __init__(self, filepath):
         self.filepath = filepath
         
-    def overwrite_mn_memo(self, input_lines, register_number):
+    def overwrite_mn_memo(self, input_lines, register_number, liste_tool):
         """
         Réécrit les mémos d'init autour des lignes de mouvement en fonction de leur position dans la séquence
          - Avant chaque ligne de mouvement : R[register_number] = i-0.5
@@ -111,7 +111,7 @@ class LSFileEditer:
                 continue
             else:
                 # Ajout de mémos d'init avant et après chaque ligne de mouvement
-                if line.startswith(("J ", "L ")) or line.startswith(f"CALL TOOL"):
+                if line.startswith(("J ", "L ")) or any(line == f"CALL {tool}" for tool in liste_tool):
                     output_lines.append(f"R[{register_number}]={i-0.5}")
                     output_lines.append(line)
                     output_lines.append(f"R[{register_number}]={i}")

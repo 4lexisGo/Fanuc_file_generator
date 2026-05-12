@@ -82,7 +82,8 @@ for programme in liste_programme:
 
     # Edition des registres d'init sur les lignes MN triées
     obj2 = LSFileEditer(programme)
-    mn_lines = obj2.overwrite_mn_memo(mn_lines, memo_init)
+    mn_lines = obj2.overwrite_mn_memo(mn_lines, memo_init, liste_pince)
+    obj2.overwrite_mn(mn_lines)
     
     # Construction finales de la section MN
     liste_bloc, liste_valeur_registre, liste_offset = obj.extract_blocks_table(mn_lines)
