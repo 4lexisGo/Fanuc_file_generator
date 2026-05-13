@@ -52,7 +52,6 @@ class App(ctk.CTk):
         # =====================
         self.console = Console(self)
         self.console.grid(row=2, column=0, sticky="ew")
-        self.console.insert("end", "Console prête...\n")
 
         # pages
         self.pages = {}

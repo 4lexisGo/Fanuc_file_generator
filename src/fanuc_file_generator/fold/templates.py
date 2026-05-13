@@ -51,7 +51,7 @@ class InitGenerator:
         ])
         # Deuxième select pour arrêt pointé
         for i, value in enumerate(liste_numero):
-            pattern = f"={value},CALL {liste_nom_programme[i]}"
+            pattern = f"={value},CALL INIT_{liste_nom_programme[i]}"
             if value == liste_numero[0]:
                 self.bloc.append(f"SELECT R[{self.memo_positon}]{pattern}")
                 continue

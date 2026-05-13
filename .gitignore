@@ -3,4 +3,4 @@ __pycache__/
 *.pyc
 dist/
 build/
-TEST_INIT/DESTINATION/*
+TEST_INIT/

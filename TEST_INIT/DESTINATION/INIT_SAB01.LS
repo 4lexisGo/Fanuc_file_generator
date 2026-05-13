@@ -2,8 +2,8 @@
 /ATTR
 OWNER	   = ;
 COMMENT  = "Génération auto";
-CREATE   = DATE 26-05-12  TIME 19:18:59;
-MODIFIED = DATE 26-05-12  TIME 19:18:59;
+CREATE   = DATE 26-05-13  TIME 11:26:45;
+MODIFIED = DATE 26-05-13  TIME 11:26:45;
 PROTECT  = READ_WRITE;
 TCD:   STACK_SIZE	    = 0,
        TASK_PRIORITY	= 50,
@@ -21,27 +21,19 @@ AUTO_SINGULARITY_HEADER;    ENABLE_SINGULARITY_AVOIDANCE   : FALSE;
    3:      ;
    4:  LBL[998]    ;
    5:      ;
-   6:  SELECT R[38]=1,CALL SAB01_10    ;
-   7:         =10,CALL SAB01_100    ;
-   8:         =2,CALL SAB01_20    ;
-   9:         =3,CALL SAB01_30    ;
-  10:         =4,CALL SAB01_40    ;
-  11:         =5,CALL SAB01_50    ;
-  12:         =6,CALL SAB01_60    ;
-  13:         =7,CALL SAB01_70    ;
-  14:      ;
-  15:  GO[1]=99    ;
-  16:  PAUSE    ;
-  17:  GO[1]=0    ;
-  18:  JMP LBL[998]    ;
-  19:      ;
-  20:  !Début des trajectoires    ;
-  21:      ;
-  22:  LBL[999]    ;
-  23:  R[38]=0    ;
-  24:  R[66]=0    ;
-  25:  IF R[99]<>0,CALL REBUT    ;
-  26:  R[98]=0    ;
-  27:  CALL CHANG_OUTIL    ;
+   6:      ;
+   7:  GO[1]=32    ;
+   8:  PAUSE    ;
+   9:  GO[1]=0    ;
+  10:  JMP LBL[998]    ;
+  11:      ;
+  12:  !Début des trajectoires    ;
+  13:      ;
+  14:  LBL[999]    ;
+  15:  R[30]=0    ;
+  16:  R[31]=0    ;
+  17:  IF R[13]<>0,CALL REBUT    ;
+  18:  R[10]=0    ;
+  19:  CALL CHGMT_PREHENSEUR    ;
 /POS
 /END
