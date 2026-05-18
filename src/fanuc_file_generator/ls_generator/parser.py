@@ -12,6 +12,8 @@ class LSFileFilter:
         self.rules_calcul = rules_calcul
         self.rules_pince = rules_pince
         
+        self.last_calcul = ""
+        
     def is_mouvement(self, content, mouvement_rules=("J ", "L ")):
         return content.startswith(mouvement_rules)
     
@@ -86,6 +88,17 @@ class LSFileFilter:
                 last_value = match.group(1).strip()
 
         return last_value
+    
+    def get_last_calcul(self, block, liste):
+        """
+        Trouve le dernier programme de calcul appelé
+        """
+        pattern = rf"CALL\s+({'|'.join(map(re.escape, liste))})"
+        
+        for line in block:
+            match = re.search(pattern, line)
+            if match:
+                self.last_calcul = match.group(1).strip()
     
     def is_tool_called(self, block):
         """
@@ -318,9 +331,12 @@ class LSFileFilter:
             # Obtention de la valeur de registre R[register_number] à la fin du bloc
             value = self.get_last_r_value(block, self.register_number)
             # Vérification de l'appel d'outil dans le bloc pour ajustement de l'offset
-            b_offset = self.is_tool_called(block)
-            if b_offset:
+            if self.is_tool_called(block):
                 self.offset *= -1
+               
+            self.get_last_calcul(block, self.rules_calcul)
+            if any("PR[" in s for s in self.rules_calcul):
+                block.insert(0, f"CALL {self.last_calcul}")
 
             # Ajout du bloc, de la valeur de registre et de l'offset à la table
             liste_bloc.append(block)
