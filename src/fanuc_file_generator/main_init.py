@@ -23,23 +23,16 @@ PATH_PINCE = PATH_GLOBAL/"PINCE"
 PATH_DESTINATION = PATH_GLOBAL/"DESTINATION"
 PATH_EDIT = PATH_GLOBAL/"EDIT"
 
-# Vérifie que le dossier source existe
-if not PATH_SOURCE.exists():
-    raise FileNotFoundError(f"Le dossier source n'existe pas : {PATH_SOURCE}")
+# Crée le dossier destination s'il n'existe pas
+PATH_GLOBAL.mkdir(exist_ok=True)
+PATH_SOURCE.mkdir(exist_ok=True)
+PATH_CALCUL.mkdir(exist_ok=True)
+PATH_PINCE.mkdir(exist_ok=True)
+PATH_DESTINATION.mkdir(exist_ok=True)
 
+# Copie le dossier source
 shutil.rmtree(PATH_EDIT, ignore_errors=True)
 shutil.copytree(PATH_SOURCE, PATH_EDIT)
-
-# Vérifie que le dossier calcul existe
-if not PATH_CALCUL.exists():
-    raise FileNotFoundError(f"Le dossier calcul n'existe pas : {PATH_CALCUL}")
-
-# Vérifie que le dossier pince existe
-if not PATH_PINCE.exists():
-    raise FileNotFoundError(f"Le dossier pince n'existe pas : {PATH_PINCE}")
-
-# Crée le dossier destination s'il n'existe pas
-PATH_DESTINATION.mkdir(exist_ok=True)
 
 # Récupération des fichiers
 liste_programme = get_fichiers(PATH_EDIT, root=True)
