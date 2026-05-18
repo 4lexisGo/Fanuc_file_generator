@@ -1,9 +1,9 @@
 /PROG  INT_SAB01_50.LS
 /ATTR
 OWNER	   = ;
-COMMENT  = "GÃ©nÃ©ration auto";
-CREATE   = DATE 26-05-13  TIME 11:28:46;
-MODIFIED = DATE 26-05-13  TIME 11:28:46;
+COMMENT  = "Génération auto";
+CREATE   = DATE 26-05-18  TIME 11:33:35;
+MODIFIED = DATE 26-05-18  TIME 11:33:35;
 PROTECT  = READ_WRITE;
 TCD:   STACK_SIZE	    = 0,
        TASK_PRIORITY	= 50,
@@ -16,48 +16,49 @@ DEFAULT_GROUP	= 1,*,*,*,*;
 
 AUTO_SINGULARITY_HEADER;    ENABLE_SINGULARITY_AVOIDANCE   : FALSE;
 /MN
-   1:  !Init gÃ©nÃ©rÃ© automatiquement    ;
-   2:  !programme rÃ©fÃ©rence SAB01_50    ;
+   1:  !Init généré automatiquement    ;
+   2:  !programme référence SAB01_50    ;
    3:      ;
-   4:  SELECT R[31]=1.5,JMP LBL[1]    ;
-   5:         =2.5,JMP LBL[2]    ;
-   6:         =3.5,JMP LBL[3]    ;
-   7:      ;
-   8:  LBL[998]    ;
-   9:      ;
-  10:  SELECT R[31]=1,JMP LBL[999]    ;
-  11:         =2,JMP LBL[1]    ;
-  12:         =3,JMP LBL[999]    ;
-  13:      ;
-  14:  GO[1]=32    ;
-  15:  PAUSE    ;
-  16:  GO[1]=0    ;
-  17:  JMP LBL[998]    ;
-  18:      ;
-  19:  !DÃ©but des trajectoires    ;
-  20:      ;
-  21:  LBL[1]    ;
-  22:  !Point de mesure telemetre    ;
-  23:  R[31]=0.5    ;
-  24:J P[1:Ctrl telemetre] 10% FINE    ;
-  25:  R[31]=1    ;
-  26:  JMP LBL[998]    ;
-  27:      ;
-  28:  LBL[2]    ;
-  29:  !Calcul point de pose bac    ;
-  30:  CALL CALC_005    ;
-  31:  R[31]=1.5    ;
-  32:L PR[99:Mobil 1] 100mm/sec FINE    ;
-  33:  R[31]=2    ;
-  34:  JMP LBL[998]    ;
-  35:      ;
-  36:  LBL[3]    ;
-  37:  R[31]=2.5    ;
-  38:J P[1:Ctrl telemetre] 10% FINE    ;
-  39:  R[31]=3    ;
-  40:  JMP LBL[998]    ;
-  41:      ;
-  42:  LBL[999]    ;
+   4:  SELECT R[31]=0.5,JMP LBL[999]    ;
+   5:         =1.5,JMP LBL[1]    ;
+   6:         =2.5,JMP LBL[2]    ;
+   7:         =3.5,JMP LBL[3]    ;
+   8:      ;
+   9:  LBL[998]    ;
+  10:      ;
+  11:  SELECT R[31]=1,JMP LBL[999]    ;
+  12:         =2,JMP LBL[1]    ;
+  13:         =3,JMP LBL[999]    ;
+  14:      ;
+  15:  GO[1]=32    ;
+  16:  PAUSE    ;
+  17:  GO[1]=0    ;
+  18:  JMP LBL[998]    ;
+  19:      ;
+  20:  !Début des trajectoires    ;
+  21:      ;
+  22:  LBL[1]    ;
+  23:  !Point de mesure telemetre    ;
+  24:  R[31]=0.5    ;
+  25:J P[1:Ctrl telemetre] 10% FINE    ;
+  26:  R[31]=1    ;
+  27:  JMP LBL[998]    ;
+  28:      ;
+  29:  LBL[2]    ;
+  30:  !Calcul point de pose bac    ;
+  31:  CALL CALC_005    ;
+  32:  R[31]=1.5    ;
+  33:L PR[99:Mobil 1] 100mm/sec FINE    ;
+  34:  R[31]=2    ;
+  35:  JMP LBL[998]    ;
+  36:      ;
+  37:  LBL[3]    ;
+  38:  R[31]=2.5    ;
+  39:J P[1:Ctrl telemetre] 10% FINE    ;
+  40:  R[31]=3    ;
+  41:  JMP LBL[998]    ;
+  42:      ;
+  43:  LBL[999]    ;
 /POS
 P[1:"Ctrl telemetre"]{
    GP1:

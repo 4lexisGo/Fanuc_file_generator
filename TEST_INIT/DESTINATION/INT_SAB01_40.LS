@@ -1,9 +1,9 @@
 /PROG  INT_SAB01_40.LS
 /ATTR
 OWNER	   = ;
-COMMENT  = "GÃ©nÃ©ration auto";
-CREATE   = DATE 26-05-13  TIME 11:28:46;
-MODIFIED = DATE 26-05-13  TIME 11:28:46;
+COMMENT  = "Génération auto";
+CREATE   = DATE 26-05-18  TIME 11:33:35;
+MODIFIED = DATE 26-05-18  TIME 11:33:35;
 PROTECT  = READ_WRITE;
 TCD:   STACK_SIZE	    = 0,
        TASK_PRIORITY	= 50,
@@ -16,30 +16,31 @@ DEFAULT_GROUP	= 1,*,*,*,*;
 
 AUTO_SINGULARITY_HEADER;    ENABLE_SINGULARITY_AVOIDANCE   : FALSE;
 /MN
-   1:  !Init gÃ©nÃ©rÃ© automatiquement    ;
-   2:  !programme rÃ©fÃ©rence SAB01_40    ;
+   1:  !Init généré automatiquement    ;
+   2:  !programme référence SAB01_40    ;
    3:      ;
-   4:  SELECT R[31]=1.5,JMP LBL[1]    ;
-   5:      ;
-   6:  LBL[998]    ;
-   7:      ;
-   8:  SELECT R[31]=1,JMP LBL[999]    ;
-   9:      ;
-  10:  GO[1]=32    ;
-  11:  PAUSE    ;
-  12:  GO[1]=0    ;
-  13:  JMP LBL[998]    ;
-  14:      ;
-  15:  !DÃ©but des trajectoires    ;
-  16:      ;
-  17:  LBL[1]    ;
-  18:  !Calcul point de controle data    ;
-  19:  CALL CALC_004    ;
-  20:  R[31]=0.5    ;
-  21:J PR[99:Mobil 1] 10% FINE    ;
-  22:  R[31]=1    ;
-  23:  JMP LBL[998]    ;
-  24:      ;
-  25:  LBL[999]    ;
+   4:  SELECT R[31]=0.5,JMP LBL[999]    ;
+   5:         =1.5,JMP LBL[1]    ;
+   6:      ;
+   7:  LBL[998]    ;
+   8:      ;
+   9:  SELECT R[31]=1,JMP LBL[999]    ;
+  10:      ;
+  11:  GO[1]=32    ;
+  12:  PAUSE    ;
+  13:  GO[1]=0    ;
+  14:  JMP LBL[998]    ;
+  15:      ;
+  16:  !Début des trajectoires    ;
+  17:      ;
+  18:  LBL[1]    ;
+  19:  !Calcul point de controle data    ;
+  20:  CALL CALC_004    ;
+  21:  R[31]=0.5    ;
+  22:J PR[99:Mobil 1] 10% FINE    ;
+  23:  R[31]=1    ;
+  24:  JMP LBL[998]    ;
+  25:      ;
+  26:  LBL[999]    ;
 /POS
 /END

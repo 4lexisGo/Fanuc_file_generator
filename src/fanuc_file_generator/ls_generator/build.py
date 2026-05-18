@@ -6,7 +6,7 @@ class LSFileBuilder:
     Gère la construction complète d'un fichier FANUC LS avec les sections /PROG, /ATTR, /APPL, /MN, /POS et /END.
     """
 
-    def __init__(self, name, owner="",comment="", output_dir=".", stack_size=0, groupe='1,*,*,*,*', singularity='FALSE'):
+    def __init__(self, name: str, owner="",comment="", output_dir=".", stack_size=0, groupe='1,*,*,*,*', singularity='FALSE'):
         """
         Initialise le builder de fichier.
 
@@ -58,7 +58,7 @@ class LSFileBuilder:
         self.pos = ["/POS"]
         self.footer = ["/END"]
 
-    def add_mn_lines(self, lines):
+    def add_mn_lines(self, lines: list[str]):
         """
         Ajoute des lignes à la section /MN en numérotant automatiquement chaque ligne.
         """
@@ -68,7 +68,7 @@ class LSFileBuilder:
                 line = "  " + line
             self.mn.append(f"{len(self.mn):>4}:{line}    ;")
 
-    def add_pos_lines(self, lines):
+    def add_pos_lines(self, lines: list[str]):
         """
         Ajoute des lignes à la section /POS.
         """
@@ -82,7 +82,7 @@ class LSFileBuilder:
         """
         sections = [self.header, self.mn, self.pos, self.footer]
         
-        with open(self.filename, "w", encoding="utf-8") as f:
+        with open(self.filename, "w", encoding="cp1252") as f:
             for section in sections:
                 for line in section:
                     f.write(line + "\n")
@@ -95,7 +95,7 @@ class LSFileEditer:
     def __init__(self, filepath):
         self.filepath = filepath
         
-    def overwrite_mn_memo(self, input_lines, register_number, liste_tool):
+    def overwrite_mn_memo(self, input_lines: list[str], register_number: int, liste_tool: list[str]):
         """
         Réécrit les mémos d'init autour des lignes de mouvement en fonction de leur position dans la séquence
          - Avant chaque ligne de mouvement : R[register_number] = i-0.5
@@ -122,21 +122,21 @@ class LSFileEditer:
                     
         return output_lines
     
-    def overwrite_mn(self, input_lines):
+    def overwrite_mn(self, input_lines: list[str]) -> None:
         """
         Réécrit la section MN du fichier de sortie avec les lignes d'entrée modifiées, en gardant les autres sections intactes.
          - input_lines : lignes à écrire dans la section MN (doivent être déjà modifiées avec les mémos d'init)
          - output_path : chemin du fichier de sortie à modifier
         """
         # Lecture du fichier
-        with open(self.filepath, "r", encoding="utf-8", errors="ignore") as f:
+        with open(self.filepath, "r", encoding="cp1252") as f:
             output_lines = f.readlines()
             
         current_section = None
         overwrited_mn = False
         
         # Ecriture
-        with open(self.filepath, "w", encoding="utf-8") as f:
+        with open(self.filepath, "w", encoding="cp1252") as f:
             for line in output_lines:
                 # Détection de la section
                 if line.startswith("/"):
@@ -147,19 +147,23 @@ class LSFileEditer:
                     if not overwrited_mn:
                         f.write("/MN\n")
                         for idx, line in enumerate(input_lines, start=1):
-                            f.write(f"{idx}:  {str(line).strip()} ;\n")
+                            stripped = line.strip()
+                            # Incrément de la ligne si elle ne commence pas par une instruction de mouvement
+                            if not stripped.startswith(("J ", "L ")):
+                                stripped = "  " + stripped
+                            f.write(f"{(idx):>4}:{stripped} ;\n")
                         overwrited_mn = True
                     continue
                 else:    
                     f.write(line)
 
-    def overwrite_pos(self, input_lines):
+    def overwrite_pos(self, input_lines: list[str]):
             """
             Réécrit la section POS du fichier de sortie avec les lignes d'entrée modifiées, en gardant les autres sections intactes.
             - input_lines : lignes à écrire dans la section POS (doivent être déjà modifiées)
             - output_path : chemin du fichier de sortie à modifier
             """
-            with open(self.filepath, "r", encoding="utf-8", errors="ignore") as f:
+            with open(self.filepath, "r", encoding="cp1252") as f:
                 output_lines = f.readlines()
 
             current_section = None
@@ -181,5 +185,5 @@ class LSFileEditer:
                 output_lines.append(line)
 
             # Ecriture
-            with open(self.filepath, "w", encoding="utf-8") as f:
+            with open(self.filepath, "w", encoding="cp1252") as f:
                 f.writelines(output_lines)

@@ -196,7 +196,7 @@ class LSFileFilter:
         """
         Sélectionne les lignes de la section MN selon les règles spécifiées
         """
-        with open(input_path, "r", encoding="utf-8", errors="ignore") as f:
+        with open(input_path, "r", encoding="cp1252", errors="ignore") as f:
             input_lines = f.readlines()
 
         current_section = None
@@ -204,17 +204,17 @@ class LSFileFilter:
         output_lines = []
 
         for i, line in enumerate(input_lines):
-            stripped = self.strip_line_number(line)
-
             # Détection de la section
             if line.startswith("/"):
-                current_section = stripped[1:].split()[0]
+                current_section = line[1:].strip()
+                continue
+            
+            stripped = self.strip_line_number(line)
 
             # Section MN
-            if current_section == "MN":
-                next_line = input_lines[i + 1] if i + 1 < len(input_lines) else None
-                
+            if current_section == "MN":                
                 if rule:
+                    next_line = input_lines[i + 1] if i + 1 < len(input_lines) else None
                     # Vérification de toutes les règles pour l'ajout de la ligne
                     if self.should_keep_mn(line, next_line):
                         
@@ -243,7 +243,7 @@ class LSFileFilter:
         """
         Sélectionne les lignes de la section POS
         """
-        with open(input_path, "r", encoding="utf-8", errors="ignore") as f:
+        with open(input_path, "r", encoding="cp1252", errors="ignore") as f:
             input_lines = f.readlines()
 
         output_lines = []
@@ -253,12 +253,12 @@ class LSFileFilter:
         for i, line in enumerate(input_lines):
             # Détection de la section
             if line.startswith("/"):
-                current_section = line[1:].split()[0]
+                current_section = line[1:].strip()
+                continue
 
             # Section POS
             if current_section == "POS":
-                if not line.startswith("/"):
-                    output_lines.append(line.strip("\n"))
+                output_lines.append(line.strip("\n"))
 
         return output_lines
         

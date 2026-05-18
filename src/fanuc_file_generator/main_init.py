@@ -4,11 +4,11 @@ from fanuc_file_generator.utils.file import get_fichiers
 from fanuc_file_generator.fold.templates import InitGenerator
 
 from pathlib import Path
+import shutil
 
-
-memo_programme = 38
-memo_init = 66
-numero_alarme = 99
+memo_programme = 30
+memo_init = 31
+numero_alarme = 32
 memo_piece = 99
 memo_prehenseur = 98
 
@@ -21,10 +21,14 @@ PATH_SOURCE = PATH_GLOBAL/"SOURCE"
 PATH_CALCUL = PATH_GLOBAL/"CALCUL"
 PATH_PINCE = PATH_GLOBAL/"PINCE"
 PATH_DESTINATION = PATH_GLOBAL/"DESTINATION"
+PATH_EDIT = PATH_GLOBAL/"EDIT"
 
 # Vérifie que le dossier source existe
 if not PATH_SOURCE.exists():
     raise FileNotFoundError(f"Le dossier source n'existe pas : {PATH_SOURCE}")
+
+shutil.rmtree(PATH_EDIT, ignore_errors=True)
+shutil.copytree(PATH_SOURCE, PATH_EDIT)
 
 # Vérifie que le dossier calcul existe
 if not PATH_CALCUL.exists():
@@ -38,7 +42,7 @@ if not PATH_PINCE.exists():
 PATH_DESTINATION.mkdir(exist_ok=True)
 
 # Récupération des fichiers
-liste_programme = get_fichiers(PATH_SOURCE, root=True)
+liste_programme = get_fichiers(PATH_EDIT, root=True)
 liste_calcul = get_fichiers(PATH_CALCUL)
 liste_pince = get_fichiers(PATH_PINCE)
 
@@ -60,9 +64,9 @@ for programme in liste_programme:
     # Vérifie la conformité du programme
     if last_value is None:
         print(f"{programme.name} : absence de registre")
-        continue
-    
-    last_value = int(last_value)
+        #continue
+    else:
+        last_value = int(last_value)
 
     # Stockage
     liste_nom_programme.append(programme.stem)

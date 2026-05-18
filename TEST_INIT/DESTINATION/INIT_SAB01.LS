@@ -1,9 +1,9 @@
 /PROG  INIT_SAB01.LS
 /ATTR
 OWNER	   = ;
-COMMENT  = "GÃ©nÃ©ration auto";
-CREATE   = DATE 26-05-13  TIME 11:26:45;
-MODIFIED = DATE 26-05-13  TIME 11:26:45;
+COMMENT  = "Génération auto";
+CREATE   = DATE 26-05-18  TIME 11:32:46;
+MODIFIED = DATE 26-05-18  TIME 11:32:46;
 PROTECT  = READ_WRITE;
 TCD:   STACK_SIZE	    = 0,
        TASK_PRIORITY	= 50,
@@ -16,24 +16,25 @@ DEFAULT_GROUP	= 1,*,*,*,*;
 
 AUTO_SINGULARITY_HEADER;    ENABLE_SINGULARITY_AVOIDANCE   : FALSE;
 /MN
-   1:  !Init gÃ©nÃ©rÃ© automatiquement    ;
-   2:  !programme rÃ©fÃ©rence FAIVELAY    ;
+   1:  !Init généré automatiquement    ;
+   2:  !programme référence FAIVELAY    ;
    3:      ;
    4:  LBL[998]    ;
    5:      ;
-   6:      ;
-   7:  GO[1]=32    ;
-   8:  PAUSE    ;
-   9:  GO[1]=0    ;
-  10:  JMP LBL[998]    ;
-  11:      ;
-  12:  !DÃ©but des trajectoires    ;
-  13:      ;
-  14:  LBL[999]    ;
-  15:  R[30]=0    ;
-  16:  R[31]=0    ;
-  17:  IF R[13]<>0,CALL REBUT    ;
-  18:  R[10]=0    ;
-  19:  CALL CHGMT_PREHENSEUR    ;
+   6:  SELECT R[30]=None,CALL INIT_SAB01_20    ;
+   7:      ;
+   8:  GO[1]=32    ;
+   9:  PAUSE    ;
+  10:  GO[1]=0    ;
+  11:  JMP LBL[998]    ;
+  12:      ;
+  13:  !Début des trajectoires    ;
+  14:      ;
+  15:  LBL[999]    ;
+  16:  R[30]=0    ;
+  17:  R[31]=0    ;
+  18:  IF R[99]<>0,CALL REBUT    ;
+  19:  R[98]=0    ;
+  20:  CALL CHANG_OUTIL    ;
 /POS
 /END

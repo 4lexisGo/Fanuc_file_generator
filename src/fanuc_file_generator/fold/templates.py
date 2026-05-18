@@ -76,12 +76,9 @@ class InitGenerator:
         """
 
         # Premier select en cas de traj stoppé
+        self.bloc.append(f"SELECT R[{self.memo_positon}]=0.5,JMP LBL[999]")
         for i, value in enumerate(liste_numero_positon):
-            pattern = f"={float(value)+0.5},JMP LBL[{liste_numero_positon[i]}]"
-            if value == liste_numero_positon[0]:
-                self.bloc.append(f"SELECT R[{self.memo_positon}]{pattern}")
-                continue
-            
+            pattern = f"={float(value)+0.5},JMP LBL[{liste_numero_positon[i]}]"            
             self.bloc.append(f"       {pattern}")
             
         self.bloc.extend([
