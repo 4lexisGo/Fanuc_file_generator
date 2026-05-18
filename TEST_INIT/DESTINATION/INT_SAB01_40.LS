@@ -2,8 +2,8 @@
 /ATTR
 OWNER	   = ;
 COMMENT  = "Génération auto";
-CREATE   = DATE 26-05-18  TIME 11:33:35;
-MODIFIED = DATE 26-05-18  TIME 11:33:35;
+CREATE   = DATE 26-05-18  TIME 22:05:25;
+MODIFIED = DATE 26-05-18  TIME 22:05:25;
 PROTECT  = READ_WRITE;
 TCD:   STACK_SIZE	    = 0,
        TASK_PRIORITY	= 50,
@@ -34,13 +34,11 @@ AUTO_SINGULARITY_HEADER;    ENABLE_SINGULARITY_AVOIDANCE   : FALSE;
   16:  !Début des trajectoires    ;
   17:      ;
   18:  LBL[1]    ;
-  19:  !Calcul point de controle data    ;
-  20:  CALL CALC_004    ;
-  21:  R[31]=0.5    ;
-  22:J PR[99:Mobil 1] 10% FINE    ;
-  23:  R[31]=1    ;
-  24:  JMP LBL[998]    ;
-  25:      ;
-  26:  LBL[999]    ;
+  19:  R[31]=0.5    ;
+  20:J PR[99:Mobil 1] 10% FINE    ;
+  21:  R[31]=1    ;
+  22:  JMP LBL[998]    ;
+  23:      ;
+  24:  LBL[999]    ;
 /POS
 /END

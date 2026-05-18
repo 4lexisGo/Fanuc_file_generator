@@ -209,7 +209,7 @@ class LSFileFilter:
         """
         Sélectionne les lignes de la section MN selon les règles spécifiées
         """
-        with open(input_path, "r", encoding="cp1252", errors="ignore") as f:
+        with open(input_path, "r", encoding="cp1252") as f:
             input_lines = f.readlines()
 
         current_section = None
@@ -230,17 +230,9 @@ class LSFileFilter:
                     next_line = input_lines[i + 1] if i + 1 < len(input_lines) else None
                     # Vérification de toutes les règles pour l'ajout de la ligne
                     if self.should_keep_mn(line, next_line):
-                        
-                        # Mémoire tampon du dernier programme de calcul
-                        if stripped.startswith(f"CALL CALC"):
-                            temp_calc = stripped[5:]
-                        
-                        # Ajout du dernier programme de calcul si première ligne de PR
-                        elif stripped.startswith(f"PR[") and output_lines[-1] == "\n":
-                            output_lines.append(f"CALL {temp_calc}\n")
-                            
+
                         # Modification des paramètres de mouvements (vitesse, cnt etc...)
-                        elif stripped.startswith(("J ", "L ")):
+                        if stripped.startswith(("J ", "L ")):
                             stripped = self.modify_line(stripped)
 
                         # Ajout de la ligne
@@ -256,7 +248,7 @@ class LSFileFilter:
         """
         Sélectionne les lignes de la section POS
         """
-        with open(input_path, "r", encoding="cp1252", errors="ignore") as f:
+        with open(input_path, "r", encoding="cp1252") as f:
             input_lines = f.readlines()
 
         output_lines = []

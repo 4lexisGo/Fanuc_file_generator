@@ -63,7 +63,8 @@ for programme in liste_programme:
             
     # Vérifie la conformité du programme
     if last_value is None:
-        print(f"{programme.name} : absence de registre")
+        print(f"{programme.name} : absence de registre programme")
+        last_value = 0
         #continue
     else:
         last_value = int(last_value)

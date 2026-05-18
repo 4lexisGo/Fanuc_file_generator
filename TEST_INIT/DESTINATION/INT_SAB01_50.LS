@@ -2,8 +2,8 @@
 /ATTR
 OWNER	   = ;
 COMMENT  = "Génération auto";
-CREATE   = DATE 26-05-18  TIME 11:33:35;
-MODIFIED = DATE 26-05-18  TIME 11:33:35;
+CREATE   = DATE 26-05-18  TIME 22:05:25;
+MODIFIED = DATE 26-05-18  TIME 22:05:25;
 PROTECT  = READ_WRITE;
 TCD:   STACK_SIZE	    = 0,
        TASK_PRIORITY	= 50,
@@ -45,20 +45,18 @@ AUTO_SINGULARITY_HEADER;    ENABLE_SINGULARITY_AVOIDANCE   : FALSE;
   27:  JMP LBL[998]    ;
   28:      ;
   29:  LBL[2]    ;
-  30:  !Calcul point de pose bac    ;
-  31:  CALL CALC_005    ;
-  32:  R[31]=1.5    ;
-  33:L PR[99:Mobil 1] 100mm/sec FINE    ;
-  34:  R[31]=2    ;
-  35:  JMP LBL[998]    ;
-  36:      ;
-  37:  LBL[3]    ;
-  38:  R[31]=2.5    ;
-  39:J P[1:Ctrl telemetre] 10% FINE    ;
-  40:  R[31]=3    ;
-  41:  JMP LBL[998]    ;
-  42:      ;
-  43:  LBL[999]    ;
+  30:  R[31]=1.5    ;
+  31:L PR[99:Mobil 1] 100mm/sec FINE    ;
+  32:  R[31]=2    ;
+  33:  JMP LBL[998]    ;
+  34:      ;
+  35:  LBL[3]    ;
+  36:  R[31]=2.5    ;
+  37:J P[1:Ctrl telemetre] 10% FINE    ;
+  38:  R[31]=3    ;
+  39:  JMP LBL[998]    ;
+  40:      ;
+  41:  LBL[999]    ;
 /POS
 P[1:"Ctrl telemetre"]{
    GP1:
