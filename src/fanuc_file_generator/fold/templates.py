@@ -23,6 +23,7 @@ class InitGenerator:
         
     def add_bloc_end(self):
         self.bloc.extend([
+            "!Fin des trajectoires",
             "LBL[999]"
         ])
     

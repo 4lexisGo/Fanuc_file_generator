@@ -300,6 +300,13 @@ class LSFileFilter:
             return None, i + 1
 
         return block, i + 1
+    
+    def contains_one_element(self, block, liste):
+        for s in block:
+            for elem in liste:
+                if elem in s:
+                    return True
+        return False
 
     def extract_blocks_table(self, lines):
         """
@@ -327,8 +334,9 @@ class LSFileFilter:
                 self.offset *= -1
                
             self.get_last_calcul(block, self.rules_calcul)
-            if any("PR[" in s for s in self.rules_calcul):
-                block.insert(0, f"CALL {self.last_calcul}")
+            if self.rules_calcul != None:
+                if any("PR[" in s for s in block) and not self.contains_one_element(block, self.rules_calcul):
+                    block.insert(0, f"CALL {self.last_calcul}")
 
             # Ajout du bloc, de la valeur de registre et de l'offset à la table
             liste_bloc.append(block)
