@@ -334,9 +334,12 @@ class LSFileFilter:
                 self.offset *= -1
                
             self.get_last_calcul(block, self.rules_calcul)
-            if self.rules_calcul != None:
+            print(f"|{self.last_calcul}|")
+            if self.last_calcul != "":
                 if any("PR[" in s for s in block) and not self.contains_one_element(block, self.rules_calcul):
                     block.insert(0, f"CALL {self.last_calcul}")
+            else:
+                print("ok")
 
             # Ajout du bloc, de la valeur de registre et de l'offset à la table
             liste_bloc.append(block)
