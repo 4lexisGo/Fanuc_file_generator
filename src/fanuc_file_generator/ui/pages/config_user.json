@@ -1,0 +1,14 @@
+{
+    "PATH_GLOBAL": "",
+    "project_name": "FAIVELAY",
+    "main_name": "SAB01",
+    "name_init": "INIT_",
+    "programme_prehenseur": "CHANG_OUTIL",
+    "programme_rebut": "REBUT",
+    "commentaire_init": "Génération auto",
+    "memo_programme": 30,
+    "memo_init": 31,
+    "numero_alarme": 32,
+    "memo_piece": 99,
+    "memo_prehenseur": 98
+}

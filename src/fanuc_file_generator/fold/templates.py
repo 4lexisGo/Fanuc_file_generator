@@ -20,12 +20,6 @@ class InitGenerator:
         
     def add_bloc(self, bloc):
         self.bloc.extend(bloc)
-        
-    def add_bloc_end(self):
-        self.bloc.extend([
-            "!Fin des trajectoires",
-            "LBL[999]"
-        ])
     
     def structure_indiv(self, i, liste):
         """
@@ -48,12 +42,14 @@ class InitGenerator:
         """
         self.bloc.extend([
             "LBL[998]",
-            ""
+            "",
+            f"SELECT R[{self.memo_positon}]=0, JMP LBL[999]"
         ])
         # Deuxième select pour arrêt pointé
         for i, value in enumerate(liste_numero):
             pattern = f"={value},CALL INIT_{liste_nom_programme[i]}"
-            if i == 0:
+            
+            if i == 0 and False:
                 self.bloc.append(f"SELECT R[{self.memo_positon}]{pattern}")
                 continue
             
@@ -66,28 +62,40 @@ class InitGenerator:
             "PAUSE",
             "GO[1]=0",
             "JMP LBL[998]",
-            "",
-            "!Début des trajectoires",
             ""
         ])
+        
+    def end_main(self, memo_programme, memo_piece, programme_rebut, 
+                 memo_prehenseur, programme_prehenseur):
+        self.bloc.extend([
+            f"LBL[999]",
+            f"R[{memo_programme}]=0",
+            f"R[{self.memo_positon}]=0",
+            f"IF R[{memo_piece}]<>0,CALL {programme_rebut}",
+            f"R[{memo_prehenseur}]=0",
+            f"CALL {programme_prehenseur}"
+        ])
 
-    def structure_select(self, liste_numero_positon, offset):
+    def structure_select_half_sub_main(self, liste_numero_positon):
         """
         Structure logique pour choisir le prochain point à exécuter
-        """
-
+        """        
         # Premier select en cas de traj stoppé
         self.bloc.append(f"SELECT R[{self.memo_positon}]=0.5,JMP LBL[999]")
         for i, value in enumerate(liste_numero_positon):
             pattern = f"={float(value)+0.5},JMP LBL[{liste_numero_positon[i]}]"            
             self.bloc.append(f"       {pattern}")
-            
+        
+    def structure_select_sub_main(self, liste_numero_positon, offset):
+        """
+        Structure logique pour choisir le prochain point à exécuter
+        """
         self.bloc.extend([
             "",
             "LBL[998]",
             ""
         ])
-
+        
         # Deuxième select pour arrêt pointé
         for i, value in enumerate(liste_numero_positon):
             pattern = f"={value},JMP LBL[999]"
@@ -111,6 +119,12 @@ class InitGenerator:
             "",
             "!Début des trajectoires",
             ""
+        ])
+        
+    def end_sub_main(self):
+        self.bloc.extend([
+            "!Fin des trajectoires",
+            "LBL[999]"
         ])
 
     

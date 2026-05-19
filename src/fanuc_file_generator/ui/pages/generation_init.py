@@ -1,95 +1,265 @@
-import customtkinter as ctk
 from fanuc_file_generator.ui.dialogs import select_folder
+from fanuc_file_generator.main_init import main as main_init
+
+import customtkinter as ctk
+import json
+from pathlib import Path
 
 
 class GenerationInitPage(ctk.CTkFrame):
+
+    CONFIG_FILE = Path(__file__).parent / "config_user.json"
 
     def __init__(self, parent, app):
         super().__init__(parent)
         self.app = app
 
+        # =====================
+        # GRID STRUCTURE (IMPORTANT FIX)
+        # =====================
+        self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
+        self.grid_columnconfigure(2, weight=0)
 
-        ctk.CTkLabel(self, text="Génération INIT", font=ctk.CTkFont(size=22, weight="bold")).grid(
-            row=0, column=0, columnspan=3, pady=20, sticky="w"
-        )
+        self.grid_rowconfigure(0, weight=0)  # title
+        self.grid_rowconfigure(1, weight=1)  # form
+        self.grid_rowconfigure(2, weight=0)  # console
 
         # =====================
-        # 4 DOSSIERS
+        # TITLE
         # =====================
-        self.entries = {}
+        ctk.CTkLabel(
+            self,
+            text="Génération INIT",
+            font=ctk.CTkFont(size=22, weight="bold")
+        ).grid(row=0, column=0, columnspan=3, pady=20, sticky="w")
 
-        folders = [
-            "Dossier 1",
-            "Dossier 2",
-            "Dossier 3",
-            "Dossier 4"
+        # =====================
+        # FORM FRAME (IMPORTANT)
+        # =====================
+        self.form = ctk.CTkFrame(self)
+        self.form.grid(row=1, column=0, columnspan=3, sticky="nsew", padx=10)
+        self.form.grid_columnconfigure(1, weight=1)
+
+        # =====================
+        # PATH GLOBAL
+        # =====================
+        ctk.CTkLabel(self.form, text="PATH_GLOBAL").grid(row=0, column=0, sticky="w", padx=10, pady=5)
+
+        self.path_global = ctk.CTkEntry(self.form)
+        self.path_global.grid(row=0, column=1, sticky="ew", padx=10)
+
+        ctk.CTkButton(
+            self.form,
+            text="...",
+            width=60,
+            command=lambda: select_folder(self.path_global)
+        ).grid(row=0, column=2)
+
+        # =====================
+        # STRINGS
+        # =====================
+        self.project_name = self._entry(1, "project_name")
+        self.main_name = self._entry(2, "main_name")
+        self.name_init = self._entry(3, "name_init")
+
+        self.str1 = self._entry(4, "programme_prehenseur")
+        self.str2 = self._entry(5, "programme_rebut")
+        self.commentaire = self._entry(6, "commentaire_init")
+
+        # =====================
+        # INTS
+        # =====================
+        labels = [
+            "memo_programme",
+            "memo_init",
+            "numero_alarme",
+            "memo_piece",
+            "memo_prehenseur"
         ]
 
-        for i, name in enumerate(folders):
-            self._add_folder(i + 1, name)
-
-        # =====================
-        # 2 STRINGS
-        # =====================
-        self.str1 = self._add_entry(5, "String 1")
-        self.str2 = self._add_entry(6, "String 2")
-
-        # =====================
-        # 5 INT
-        # =====================
         self.ints = []
-        for i in range(5):
-            self.ints.append(self._add_entry(7 + i, f"Int {i+1}"))
+        for i, name in enumerate(labels):
+            self.ints.append(self._entry(7 + i, name))
 
         # =====================
         # BUTTON
         # =====================
-        ctk.CTkButton(self, text="Valider génération", command=self.validate).grid(
-            row=12, column=0, columnspan=3, pady=20, sticky="ew"
+        ctk.CTkButton(
+            self.form,
+            text="Valider génération",
+            command=self.validate
+        ).grid(row=13, column=0, columnspan=3, pady=20, sticky="ew")
+
+        # =====================
+        # CONSOLE (FIXE EN BAS)
+        # =====================
+        self.console = ctk.CTkTextbox(self, height=120)
+        self.console.grid(row=2, column=0, columnspan=3, sticky="ew")
+
+        self.console.insert("end", "Console initialisée...\n")
+
+        # =====================
+        # CONFIG
+        # =====================
+        self.ensure_config_exists()
+        self.load_previous_values()
+
+    # =========================================================
+    # UI HELPERS
+    # =========================================================
+
+    def _entry(self, row, label):
+        ctk.CTkLabel(self.form, text=label).grid(
+            row=row, column=0, sticky="w", padx=10, pady=5
         )
 
-    def _add_folder(self, row, label):
-        ctk.CTkLabel(self, text=label).grid(row=row, column=0, sticky="w", padx=10, pady=5)
+        e = ctk.CTkEntry(self.form)
+        e.grid(row=row, column=1, columnspan=2, sticky="ew", padx=10)
+        return e
 
-        entry = ctk.CTkEntry(self)
-        entry.grid(row=row, column=1, sticky="ew", padx=10)
+    # =========================================================
+    # CONFIG
+    # =========================================================
 
-        ctk.CTkButton(
-            self,
-            text="...",
-            width=60,
-            command=lambda e=entry: select_folder(e)
-        ).grid(row=row, column=2)
+    def ensure_config_exists(self):
+        if self.CONFIG_FILE.exists():
+            return
 
-        self.entries[label] = entry
+        default = {
+            "PATH_GLOBAL": "",
 
-    def _add_entry(self, row, label):
-        ctk.CTkLabel(self, text=label).grid(row=row, column=0, sticky="w", padx=10, pady=5)
+            "project_name": "FAIVELAY",
+            "main_name": "SAB01",
+            "name_init": "INIT_",
 
-        entry = ctk.CTkEntry(self)
-        entry.grid(row=row, column=1, columnspan=2, sticky="ew", padx=10)
+            "programme_prehenseur": "CHANG_OUTIL",
+            "programme_rebut": "REBUT",
+            "commentaire_init": "Génération auto",
 
-        return entry
+            "memo_programme": 30,
+            "memo_init": 31,
+            "numero_alarme": 32,
+            "memo_piece": 99,
+            "memo_prehenseur": 98
+        }
+
+        with open(self.CONFIG_FILE, "w", encoding="utf-8") as f:
+            json.dump(default, f, indent=4, ensure_ascii=False)
+
+    def load_config(self):
+        self.ensure_config_exists()
+        with open(self.CONFIG_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    def save_config(self, data):
+        with open(self.CONFIG_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+
+    def load_previous_values(self):
+        data = self.load_config()
+
+        def set(e, v):
+            e.delete(0, "end")
+            e.insert(0, str(v))
+
+        set(self.path_global, data["PATH_GLOBAL"])
+        set(self.project_name, data["project_name"])
+        set(self.main_name, data["main_name"])
+        set(self.name_init, data["name_init"])
+
+        set(self.str1, data["programme_prehenseur"])
+        set(self.str2, data["programme_rebut"])
+        set(self.commentaire, data["commentaire_init"])
+
+        keys = [
+            "memo_programme",
+            "memo_init",
+            "numero_alarme",
+            "memo_piece",
+            "memo_prehenseur"
+        ]
+
+        for i, e in enumerate(self.ints):
+            set(e, data[keys[i]])
+
+    # =========================================================
+    # VALIDATION
+    # =========================================================
 
     def validate(self):
-        app = self.app
-        app.log("=== Génération INIT ===")
 
-        # check dossiers
-        for k, e in self.entries.items():
-            if not e.get():
-                app.log(f"[ERROR] Dossier manquant: {k}")
+        def error(msg):
+            self.console.insert("end", f"[ERROR] {msg}\n")
+            self.console.see("end")
+            return None
 
-        # strings
-        if not self.str1.get():
-            app.log("[ERROR] String 1 vide")
-        if not self.str2.get():
-            app.log("[ERROR] String 2 vide")
+        # PATH
+        path_global = Path(self.path_global.get())
+        if not path_global.exists():
+            return error("PATH_GLOBAL invalide")
 
-        # ints
-        for i, e in enumerate(self.ints):
+        # STR
+        def check_str(v, name):
+            if not v:
+                return error(f"{name} vide")
+            return v.strip()
+
+        project_name = check_str(self.project_name.get(), "project_name")
+        main_name = check_str(self.main_name.get(), "main_name")
+        name_init = check_str(self.name_init.get(), "name_init")
+
+        programme_prehenseur = check_str(self.str1.get(), "programme_prehenseur")
+        programme_rebut = check_str(self.str2.get(), "programme_rebut")
+        commentaire_init = check_str(self.commentaire.get(), "commentaire_init")
+
+        # INT
+        def check_int(e, name):
             try:
-                int(e.get())
+                return int(e.get())
             except:
-                app.log(f"[ERROR] Int {i+1} invalide")
+                return error(f"{name} invalide")
+
+        memo_programme = check_int(self.ints[0], "memo_programme")
+        memo_init = check_int(self.ints[1], "memo_init")
+        numero_alarme = check_int(self.ints[2], "numero_alarme")
+        memo_piece = check_int(self.ints[3], "memo_piece")
+        memo_prehenseur = check_int(self.ints[4], "memo_prehenseur")
+
+        if None in [memo_programme, memo_init, numero_alarme, memo_piece, memo_prehenseur]:
+            return
+
+        # SAVE
+        self.save_config({
+            "PATH_GLOBAL": str(path_global),
+
+            "project_name": project_name,
+            "main_name": main_name,
+            "name_init": name_init,
+
+            "programme_prehenseur": programme_prehenseur,
+            "programme_rebut": programme_rebut,
+            "commentaire_init": commentaire_init,
+
+            "memo_programme": memo_programme,
+            "memo_init": memo_init,
+            "numero_alarme": numero_alarme,
+            "memo_piece": memo_piece,
+            "memo_prehenseur": memo_prehenseur
+        })
+
+        # CALL
+        main_init(
+            memo_programme,
+            memo_init,
+            numero_alarme,
+            memo_piece,
+            memo_prehenseur,
+            programme_prehenseur,
+            programme_rebut,
+            project_name,
+            main_name,
+            name_init,
+            commentaire_init,
+            path_global
+        )

@@ -1,0 +1,18 @@
+{
+    "PATH_GLOBAL": "",
+
+    "memo_programme": 30,
+    "memo_init": 31,
+    "numero_alarme": 32,
+    "memo_piece": 99,
+    "memo_prehenseur": 98,
+
+    "programme_prehenseur": "CHANG_OUTIL",
+    "programme_rebut": "REBUT",
+
+    "project_name": "ECMP_EK",
+    "main_name": "SAB01",
+
+    "name_init": "INIT_",
+    "commentaire_init": "Génération auto"
+}
