@@ -1,3 +1,5 @@
+import sys
+import os
 from pathlib import Path
 
 class FileContext:
@@ -48,3 +50,8 @@ def get_fichiers(dossier, extensions=[".LS"], root=False, extension=False):
                 fichiers.append(fichier.stem)
 
     return fichiers
+
+def resource_path(relative_path):
+    if hasattr(sys, "_MEIPASS"):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)

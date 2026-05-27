@@ -1,5 +1,6 @@
 from fanuc_file_generator.ui.dialogs import select_folder
-from fanuc_file_generator.main_init import main as main_init
+from fanuc_file_generator.fold.test_init import main as main_init
+from fanuc_file_generator.utils.file import resource_path
 
 import customtkinter as ctk
 import json
@@ -8,11 +9,11 @@ from pathlib import Path
 
 class GenerationInitPage(ctk.CTkFrame):
 
-    CONFIG_FILE = Path(__file__).parent / "config_user.json"
-
     def __init__(self, parent, app):
         super().__init__(parent)
         self.app = app
+        
+        self.CONFIG_FILE = Path(resource_path("assets/config_user.json"))
 
         # =====================
         # GRID STRUCTURE (IMPORTANT FIX)
@@ -90,14 +91,6 @@ class GenerationInitPage(ctk.CTkFrame):
             text="Valider génération",
             command=self.validate
         ).grid(row=13, column=0, columnspan=3, pady=20, sticky="ew")
-
-        # =====================
-        # CONSOLE (FIXE EN BAS)
-        # =====================
-        self.console = ctk.CTkTextbox(self, height=120)
-        self.console.grid(row=2, column=0, columnspan=3, sticky="ew")
-
-        self.console.insert("end", "Console initialisée...\n")
 
         # =====================
         # CONFIG

@@ -6,7 +6,7 @@ authors = [
     {name = "Alexis GOSETTO",email = "algo4203@gmail.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.11,<3.12"
 dependencies = [
     "customtkinter (>=5.2.2,<6.0.0)"
 ]
@@ -17,3 +17,8 @@ packages = [{include = "fanuc_file_generator", from = "src"}]
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pyinstaller (>=6.20.0,<7.0.0)"
+]

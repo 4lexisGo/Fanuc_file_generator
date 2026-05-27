@@ -2,6 +2,7 @@ import customtkinter as ctk
 from fanuc_file_generator.ui.pages.generation_init import GenerationInitPage
 from fanuc_file_generator.ui.pages.edition_init import EditionInitPage
 from fanuc_file_generator.ui.widgets.console import Console
+from fanuc_file_generator.utils.file import resource_path
 
 
 ctk.set_appearance_mode("dark")
@@ -14,7 +15,14 @@ class App(ctk.CTk):
         super().__init__()
 
         self.title("Configuration INIT")
-        self.geometry("1000x650")
+        self.iconbitmap(resource_path("assets/sab_robotique.ico"))
+        
+        # Affichage en plein écran
+        try:
+            self.attributes("-fullscreen", True)
+        except:
+            self.state("zoomed")
+        self.bind("<Escape>", self.attributes("-fullscreen", False))
 
         # layout global
         self.grid_rowconfigure(1, weight=1)
@@ -60,10 +68,6 @@ class App(ctk.CTk):
         self.pages["edit"] = EditionInitPage(self.container, self)
 
         self.show_generation()
-
-    def log(self, msg):
-        self.console.insert("end", msg + "\n")
-        self.console.see("end")
 
     def show_generation(self):
         self._show("gen")
