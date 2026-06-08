@@ -98,14 +98,13 @@ class GenerationInitPage(ctk.CTkFrame):
         self.main_name = self._labeled_entry(self.general_frame, row, "Nom du programme principale")
         row += 1
 
-        self.name_init = self._labeled_entry(self.general_frame, row, "Programme principale d'init")
-        row += 1
-
-        self.init_prefix = self._labeled_entry(self.general_frame, row, "Préfixe des programmes d'init")
-        CTkToolTip(self.init_prefix,
+        self.prefixe_init = self._labeled_entry(self.general_frame, row, "Préfixe des programmes d'init")
+        CTkToolTip(self.prefixe_init,
             message="Chaine de caractères placée avant le nom du programme source pour former le nom du programme d'init correspondant.\nExemple : préfixe = 'INIT_' => programme source 'PROG1' => programme d'init 'INIT_PROG1'"
         )
         row += 1
+
+        self.registre_sub_programme = self._labeled_entry(self.general_frame, row, "Registre mémorisation de la position")
 
     def _build_prehenseur_section(self, parent, global_row):
 
@@ -146,7 +145,7 @@ class GenerationInitPage(ctk.CTkFrame):
         self.registre_prehenseur = self._labeled_entry(
             self.prehenseur_subframe,
             row,
-            "Registre"
+            "Registre de demande de changement"
         )
 
     def _build_rebut_section(self, parent, global_row):
@@ -175,11 +174,11 @@ class GenerationInitPage(ctk.CTkFrame):
 
         # Champs
         row = 0
-        self.programme_rebut = self._labeled_entry(self.rebut_subframe, row, "Nom du programme de rebut")
+        self.programme_rebut = self._labeled_entry(self.rebut_subframe, row, "Programme de rebut")
 
         CTkToolTip(
             self.programme_rebut,
-            message="Programme gestion pièces rebut"
+            message="Programme de gestion des pièces rebut, ne pas mettre l'extension"
         )
         row += 1
 
@@ -190,7 +189,7 @@ class GenerationInitPage(ctk.CTkFrame):
 
         ctk.CTkLabel(
             self.type_frame,
-            text="DI/DO ou Registre"
+            text="Type de sélection pour l'init"
         ).grid(row=0, column=0, sticky="w", padx=10)
 
         self.type_selection = ctk.CTkComboBox(
@@ -315,10 +314,9 @@ class GenerationInitPage(ctk.CTkFrame):
 
         self.app.console.log("Début génération INIT...")
 
-
         main_init(
             memo_programme=self.main_name.get(),
-            memo_init=self.name_init.get(),
+            memo_init=self.registre_sub_programme.get(),
             numero_alarme=self.registre_numero.get() if self.type_selection.get() == "Registre" else None,
             memo_piece=None,
             memo_prehenseur=self.registre_prehenseur.get() if self.prehenseur_enabled.get() else None,
@@ -326,7 +324,7 @@ class GenerationInitPage(ctk.CTkFrame):
             programme_rebut=self.programme_rebut.get() if self.rebut_enabled.get() else None,
             project_name=self.project_name.get(),
             main_name=self.main_name.get(),
-            name_init=self.name_init.get(),
+            prefixe_init=self.prefixe_init.get(),
             commentaire_init="",
             PATH_GLOBAL=Path(self.path_global.get()),
             abort_on_missing_argument=False

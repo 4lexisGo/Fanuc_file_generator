@@ -24,7 +24,7 @@ def create_folders(PATH_GLOBAL):
 
 def main(memo_programme, memo_init, numero_alarme, memo_piece, 
          memo_prehenseur, programme_prehenseur, programme_rebut, 
-         project_name, main_name, name_init, commentaire_init,
+         project_name, main_name, prefixe_init, commentaire_init,
          PATH_GLOBAL, abort_on_missing_argument
     ):
 
@@ -95,7 +95,7 @@ def main(memo_programme, memo_init, numero_alarme, memo_piece,
 
         # Construction du sous programme d'init
         obj3 = LSFileBuilder(
-            name=f"{name_init}{programme.stem}",
+            name=f"{prefixe_init}{programme.stem}",
             comment=commentaire_init,
             output_dir=PATH_DESTINATION
         )
@@ -114,7 +114,7 @@ def main(memo_programme, memo_init, numero_alarme, memo_piece,
     init_principale.end_main(memo_programme, memo_piece, programme_rebut, 
                              memo_prehenseur, programme_prehenseur)
 
-    init_principale_file = LSFileBuilder(name=f"{name_init}{main_name}", comment=commentaire_init, output_dir=PATH_DESTINATION)
+    init_principale_file = LSFileBuilder(name=f"{prefixe_init}{main_name}", comment=commentaire_init, output_dir=PATH_DESTINATION)
     init_principale_file.add_mn_lines(init_principale.bloc)
     init_principale_file.build_file()
 
