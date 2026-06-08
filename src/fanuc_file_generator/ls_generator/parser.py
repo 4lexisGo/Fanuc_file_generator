@@ -5,13 +5,22 @@ class LSFileFilter:
     Traitement et filtre de fichiers LS
     """
 
-    def __init__(self, register_number, rules_calcul=[], rules_pince=[]):
+    def __init__(self, register_number, rules_calcul=[], rules_pince=[], speed_factor_linear=100, speed_factor_joint=10):
+        # Numéro de registre pour
         self.register_number = register_number
-        self.offset = -1
         
+        # Liste des programmes a prendre en compte
         self.rules_calcul = rules_calcul
         self.rules_pince = rules_pince
         
+        # Vitesse après modification
+        self.speed_factor_linear = speed_factor_linear
+        self.speed_factor_joint = speed_factor_joint
+
+        # Offset pour remonter ou descendre l'arbre des possiblités dans le SELECT R[{register_number}]
+        self.offset = -1
+
+        # Tampon du dernier programme de calcul pour bloc avec PR
         self.last_calcul = ""
         
     def is_mouvement(self, content, mouvement_rules=("J ", "L ")):
@@ -158,11 +167,21 @@ class LSFileFilter:
         Remplace les accélérations Fanuc :
         - ACCxx → rien
         """
-        line = re.sub(
-            r"\bACC\d+\b",
-            "",
-            line
-        )
+        match = re.search(r"\bACC(\d+)\b", line)
+        if match and int(match.group(1)) >= 100:
+            line = re.sub(r"\bACC\d+\b", 
+                          "", 
+                          line)
+
+        return line
+    
+    def modify_skip(self, line):
+        """
+        Enleve les skip condition
+        """
+        line = re.sub(r"\s+Skip\S*(?=\s|$)", 
+                      "", 
+                      line)
 
         return line
     
@@ -170,9 +189,10 @@ class LSFileFilter:
         """
         Remplace tous les paramètres appelés
         """
-        line = self.modify_speed(line)
+        line = self.modify_speed(line, self.speed_factor_linear, self.speed_factor_joint)
         line = self.modify_cnt(line)
-        #line= self.modify_acc(line)
+        line = self.modify_acc(line)
+        line = self.modify_skip(line)
         return line
 
     def mn_rule(self, content):
@@ -334,12 +354,9 @@ class LSFileFilter:
                 self.offset *= -1
                
             self.get_last_calcul(block, self.rules_calcul)
-            print(f"|{self.last_calcul}|")
             if self.last_calcul != "":
                 if any("PR[" in s for s in block) and not self.contains_one_element(block, self.rules_calcul):
                     block.insert(0, f"CALL {self.last_calcul}")
-            else:
-                print("ok")
 
             # Ajout du bloc, de la valeur de registre et de l'offset à la table
             liste_bloc.append(block)

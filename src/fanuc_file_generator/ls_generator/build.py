@@ -34,7 +34,7 @@ class LSFileBuilder:
         time_str = now.strftime("%H:%M:%S")
 
         self.header = [
-            f"/PROG  {name}.LS",
+            f"/PROG  {name}.ls",
             f"/ATTR",
             f"OWNER	   = {owner};",
             f'COMMENT  = "{comment}";',
@@ -140,7 +140,7 @@ class LSFileEditer:
             for line in output_lines:
                 # Détection de la section
                 if line.startswith("/"):
-                    current_section = line[1:].split()[0]
+                    current_section = line[1:].strip()
 
                 # Section MN
                 if current_section == "MN":
@@ -153,7 +153,6 @@ class LSFileEditer:
                                 stripped = "  " + stripped
                             f.write(f"{(idx):>4}:{stripped} ;\n")
                         overwrited_mn = True
-                    continue
                 else:    
                     f.write(line)
 
@@ -164,26 +163,24 @@ class LSFileEditer:
             - output_path : chemin du fichier de sortie à modifier
             """
             with open(self.filepath, "r", encoding="cp1252") as f:
-                output_lines = f.readlines()
+                read_lines = f.readlines()
 
             current_section = None
             overwrited_pos = False
 
-            for line in output_lines:
-                # Détection de la section
-                if line.startswith("/"):
-                    current_section = line[1:].split()[0]
-
-                # Section POS
-                if current_section == "POS":
-                    if not overwrited_pos:
-                        output_lines.extend(input_lines)
-                        overwrited_pos = True
-                    continue            
-
-                # Lignes normales
-                output_lines.append(line)
-
-            # Ecriture
             with open(self.filepath, "w", encoding="cp1252") as f:
-                f.writelines(output_lines)
+                for i, line in enumerate(read_lines):
+                    # Détection de la section
+                    if line.startswith("/"):
+                        current_section = line[1:].strip()          
+
+                    # Section POS
+                    if current_section == "POS":
+                        if not overwrited_pos:
+                            f.write("/POS\n")
+                            for j in input_lines:
+                                f.write(j + "\n")
+                            overwrited_pos = True 
+                    else:
+                        # Lignes normales
+                        f.write(line)

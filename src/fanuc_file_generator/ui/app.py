@@ -28,9 +28,7 @@ class App(ctk.CTk):
         self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
-        # =====================
         # MENU
-        # =====================
         self.menu_frame = ctk.CTkFrame(self)
         self.menu_frame.grid(row=0, column=0, sticky="ew")
 
@@ -46,18 +44,14 @@ class App(ctk.CTk):
             command=self.show_edition
         ).pack(side="left", padx=10, pady=10)
 
-        # =====================
         # CONTAINER PAGES
-        # =====================
         self.container = ctk.CTkFrame(self)
         self.container.grid(row=1, column=0, sticky="nsew")
 
         self.container.grid_rowconfigure(0, weight=1)
         self.container.grid_columnconfigure(0, weight=1)
 
-        # =====================
         # CONSOLE
-        # =====================
         self.console = Console(self)
         self.console.grid(row=2, column=0, sticky="ew")
 
