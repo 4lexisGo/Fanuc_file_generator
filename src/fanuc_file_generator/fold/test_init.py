@@ -2,11 +2,12 @@ from fanuc_file_generator.ls_generator.build import LSFileBuilder, LSFileEditer
 from fanuc_file_generator.ls_generator.parser import LSFileFilter
 from fanuc_file_generator.utils.file import normalize_extensions, get_fichiers
 from fanuc_file_generator.fold.templates import InitGenerator
+from fanuc_file_generator.utils.config_data import GenInitConfig
 
 from pathlib import Path
 import shutil
 
-def create_folders(PATH_GLOBAL):
+def create_folders_gen_init(PATH_GLOBAL):
     PATH_SOURCE = PATH_GLOBAL/"SOURCE"
     PATH_CALCUL = PATH_GLOBAL/"CALCUL"
     PATH_PINCE = PATH_GLOBAL/"PINCE"
@@ -22,101 +23,200 @@ def create_folders(PATH_GLOBAL):
     
     return PATH_SOURCE, PATH_CALCUL, PATH_PINCE, PATH_DESTINATION, PATH_EDIT
 
-def main(memo_programme, memo_init, numero_alarme, memo_piece, 
-         memo_prehenseur, programme_prehenseur, programme_rebut, 
-         project_name, main_name, prefixe_init, commentaire_init,
-         PATH_GLOBAL, abort_on_missing_argument
-    ):
-
-    PATH_SOURCE, PATH_CALCUL, PATH_PINCE, PATH_DESTINATION, PATH_EDIT = create_folders(PATH_GLOBAL)
-
-    # Copie le dossier source
-    shutil.rmtree(PATH_EDIT, ignore_errors=True)
-    shutil.copytree(PATH_SOURCE, PATH_EDIT)
-
-    # Récupération des fichiers
-    liste_programme = get_fichiers(PATH_EDIT, root=True)
-    liste_calcul = get_fichiers(PATH_CALCUL)
-    liste_pince = get_fichiers(PATH_PINCE)
-
-    # Résultats
-    liste_nom_programme = []
-    liste_value_memo_programme = []
-
-    for programme in liste_programme:
-
-        # Création de l'objet parser
-        sub_obj = LSFileFilter(memo_programme)
-
-        # Extraction des lignes MN
-        mn_lines = sub_obj.keep_mn(programme, rule=False)
-
-        # Récupération de la dernière valeur du registre
-        last_value = sub_obj.get_last_r_value(mn_lines, memo_programme)
-                
-        # Vérifie la conformité du programme
-        if last_value is None:
-            print(f"{programme.name} : absence de registre programme")
-            last_value = 0
-            if abort_on_missing_argument:
-                continue
+class GenInit:
+    def __init__(self, config: GenInitConfig):
+        self.config = config
+        
+        self.liste_nom_programme = []
+        self.liste_value_register_programme = []
+        
+    def gst_dido(self):
+        
+        liste_di = list(range(self.config.di_start, self.config.di_stop+1))
+        
+        nb_prog = self.config.di_stop - self.config.di_start + 1
+        do_stop = self.config.do_start + nb_prog*2 - 1
+        
+        liste_do_ec = []
+        liste_do_end = []
+        
+        if self.config.is_alternated_do_value:
+            for i in range(self.config.do_start, do_stop):
+                if i % 2 == 0:
+                    liste_do_ec.append(i)
+                else:
+                    liste_do_end.append(i)
         else:
-            last_value = int(last_value)
-
-        # Stockage
-        liste_nom_programme.append(programme.stem)
-        liste_value_memo_programme.append(last_value)
+            liste_do_ec = list(range(self.config.do_start, self.config.do_start + nb_prog))
+            liste_do_end = list(range(self.config.do_start + nb_prog +1, do_stop))
         
-        # Création de l'objet parser
-        obj = LSFileFilter(memo_init, liste_calcul, liste_pince)
+        for i, programme in enumerate(self.liste_programme):
+            
+            # Création de l'objet parser
+            sub_obj = LSFileFilter()
+
+            # Extraction des lignes MN
+            mn_lines = sub_obj.keep_mn(programme, rule=False)
+
+            # Récupération de la dernière valeur du registre
+            first_value = sub_obj.get_first_do_value(mn_lines, liste_do_ec)
+            
+            # Vérifie la conformité du programme
+            if first_value is None:
+                print(f"{programme.name} : absence de registre programme")
+                first_value = 0
+                if self.config.abort_on_missing_argument:
+                    continue
                 
-        # Création du sous programme init
-        obj1 = InitGenerator(f"{programme.stem}", memo_init, numero_alarme)
+            # Stockage
+            self.liste_nom_programme.append(programme.stem)
+            self.liste_value_register_programme.append(liste_di(liste_do_ec.index(first_value)))
+            # Création de l'objet parser
+            obj = LSFileFilter(register_number=self.config.register_init, rules_calcul=self.liste_calcul, rules_pince=self.liste_pince)
+                    
+            # Création du sous programme init
+            obj1 = InitGenerator(f"{programme.stem}", self.config.alarme_value, self.config.prefixe_init, liste_do_ec[i])
 
-        # Tri des lignes MN et POS du programme d'origine
-        pos_lines = obj.keep_pos(programme)
+            # Tri des lignes MN et POS du programme d'origine
+            pos_lines = obj.keep_pos(programme)
 
-        # Edition des registres d'init sur les lignes MN triées
-        mn_lines = obj.keep_mn(programme, rule=False)
-        obj2 = LSFileEditer(programme)
-        mn_lines = obj2.overwrite_mn_memo(mn_lines, memo_init, liste_pince)
-        obj2.overwrite_mn(mn_lines)
-        
-        # Extraction des lignes MN
-        mn_lines = obj.keep_mn(programme)
-        
-        # Construction finales de la section MN
-        liste_bloc, liste_valeur_registre, liste_offset = obj.extract_blocks_table(mn_lines)
-        obj1.structure_select_half_sub_main(liste_valeur_registre)
-        obj1.structure_select_sub_main(liste_valeur_registre, liste_offset)
-        for i, bloc in enumerate(liste_bloc):
-            obj1.structure_indiv(i+1, bloc)
-        obj1.end_sub_main()
+            # Edition des registres d'init sur les lignes MN triées
+            mn_lines = obj.keep_mn(programme, rule=False)
+            obj2 = LSFileEditer(programme)
+            mn_lines = obj2.overwrite_mn_memo(mn_lines, self.config.register_init, self.liste_pince)
+            obj2.overwrite_mn(mn_lines)
+            
+            # Extraction des lignes MN
+            mn_lines = obj.keep_mn(programme)
+            liste_bloc, liste_valeur_registre, liste_offset = obj.extract_blocks_table(mn_lines)
+            
+            # Construction finales de la section MN
+            obj1.start_sub_main_di_do()
+            obj1.structure_select_half_sub_main(liste_valeur_registre)
+            obj1.structure_select_sub_main(liste_valeur_registre, liste_offset)
+            for i, bloc in enumerate(liste_bloc):
+                obj1.structure_indiv(i+1, bloc)
+            obj1.end_main_di_do()
+            
+            # Construction du sous programme d'init
+            obj3 = LSFileBuilder(
+                name=f"{self.config.prefixe_init}{programme.stem}",
+                comment=self.config.commentaire_init,
+                output_dir=self.PATH_DESTINATION
+            )
+            obj3.add_mn_lines(obj1.bloc)
+            obj3.add_pos_lines(pos_lines)
+            obj3.build_file()
+            
+        init_principale = InitGenerator(self.config.project_name, self.config.alarme_value, self.config.prefixe_init, self.config.register_programme)
 
-        # Construction du sous programme d'init
-        obj3 = LSFileBuilder(
-            name=f"{prefixe_init}{programme.stem}",
-            comment=commentaire_init,
-            output_dir=PATH_DESTINATION
+        init_principale.structure_select_main_register(
+            self.liste_value_register_programme,
+            self.liste_nom_programme
         )
-        obj3.add_mn_lines(obj1.bloc)
-        obj3.add_pos_lines(pos_lines)
-        obj3.build_file()
-        
-        
-        
-    init_principale = InitGenerator(project_name, memo_programme, numero_alarme)
+        init_principale.end_main_register(self.config.is_gst_rebut, self.config.is_gst_prehenseur, self.config.programme_rebut, self.config.programme_prehenseur, self.config.register_prehenseur)
 
-    init_principale.structure_select_main(
-        liste_value_memo_programme,
-        liste_nom_programme
-    )
-    init_principale.end_main(memo_programme, memo_piece, programme_rebut, 
-                             memo_prehenseur, programme_prehenseur)
+        init_principale_file = LSFileBuilder(name=f"{self.config.prefixe_init}{self.config.main_name}", comment=self.config.commentaire_init, output_dir=self.PATH_DESTINATION)
+        init_principale_file.add_mn_lines(init_principale.bloc)
+        init_principale_file.build_file()
+            
+            
+        
+        
+    def gst_register(self):
+        
+        for programme in self.liste_programme:
+           
+            # Création de l'objet parser
+            sub_obj = LSFileFilter()
 
-    init_principale_file = LSFileBuilder(name=f"{prefixe_init}{main_name}", comment=commentaire_init, output_dir=PATH_DESTINATION)
-    init_principale_file.add_mn_lines(init_principale.bloc)
-    init_principale_file.build_file()
+            # Extraction des lignes MN
+            mn_lines = sub_obj.keep_mn(programme, rule=False)
+
+            # Récupération de la dernière valeur du registre
+            last_value = sub_obj.get_last_r_value(mn_lines, self.config.register_programme)
+                    
+            # Vérifie la conformité du programme
+            if last_value is None:
+                print(f"{programme.name} : absence de registre programme")
+                last_value = 0
+                if self.config.abort_on_missing_argument:
+                    continue
+            else:
+                last_value = int(last_value)
+                
+            # Stockage
+            self.liste_nom_programme.append(programme.stem)
+            self.liste_value_register_programme.append(last_value)
+                        
+            # Création de l'objet parser
+            obj = LSFileFilter(register_number=self.config.register_init, rules_calcul=self.liste_calcul, rules_pince=self.liste_pince)
+                    
+            # Création du sous programme init
+            obj1 = InitGenerator(f"{programme.stem}", self.config.alarme_value, prefixe_init=self.config.prefixe_init, memo_positon=self.config.register_init)
+
+            # Tri des lignes MN et POS du programme d'origine
+            pos_lines = obj.keep_pos(programme)
+
+            # Edition des registres d'init sur les lignes MN triées
+            mn_lines = obj.keep_mn(programme, rule=False)
+            obj2 = LSFileEditer(programme)
+            mn_lines = obj2.overwrite_mn_memo(mn_lines, self.config.register_init, self.liste_pince)
+            obj2.overwrite_mn(mn_lines)
+            
+            # Extraction des lignes MN
+            mn_lines = obj.keep_mn(programme)
+            liste_bloc, liste_valeur_registre, liste_offset = obj.extract_blocks_table(mn_lines)
+            
+            # Construction finales de la section MN
+            obj1.start_sub_main_register()
+            obj1.structure_select_half_sub_main(liste_valeur_registre)
+            obj1.structure_select_sub_main(liste_valeur_registre, liste_offset)
+            for i, bloc in enumerate(liste_bloc):
+                obj1.structure_indiv(i+1, bloc)
+            obj1.end_sub_main_register()
+
+            # Construction du sous programme d'init
+            obj3 = LSFileBuilder(
+                name=f"{self.config.prefixe_init}{programme.stem}",
+                comment=self.config.commentaire_init,
+                output_dir=self.PATH_DESTINATION
+            )
+            obj3.add_mn_lines(obj1.bloc)
+            obj3.add_pos_lines(pos_lines)
+            obj3.build_file()
+
+        init_principale = InitGenerator(self.config.project_name, self.config.alarme_value, self.config.prefixe_init, self.config.register_programme)
+
+        init_principale.structure_select_main_register(
+            self.liste_value_register_programme,
+            self.liste_nom_programme
+        )
+        init_principale.end_main_register(self.config.is_gst_rebut, self.config.is_gst_prehenseur, self.config.programme_rebut, self.config.programme_prehenseur, self.config.register_prehenseur)
+
+        init_principale_file = LSFileBuilder(name=f"{self.config.prefixe_init}{self.config.main_name}", comment=self.config.commentaire_init, output_dir=self.PATH_DESTINATION)
+        init_principale_file.add_mn_lines(init_principale.bloc)
+        init_principale_file.build_file()
+        
+    def main(self):
+
+        PATH_SOURCE, PATH_CALCUL, PATH_PINCE, self.PATH_DESTINATION, PATH_EDIT = create_folders_gen_init(self.config.PATH_GLOBAL)
+
+        # Copie le dossier source
+        shutil.rmtree(PATH_EDIT, ignore_errors=True)
+        shutil.copytree(PATH_SOURCE, PATH_EDIT)
+
+        # Récupération des fichiers
+        self.liste_programme = get_fichiers(PATH_EDIT, root=True)
+        self.liste_calcul = get_fichiers(PATH_CALCUL)
+        self.liste_pince = get_fichiers(PATH_PINCE)
+        
+        if self.config.is_gst_dido:
+            self.gst_dido()
+        elif self.config.is_gst_register:
+            self.gst_register()
+
+        
 
 def edit(path_source, path_init, prefixe):
     """

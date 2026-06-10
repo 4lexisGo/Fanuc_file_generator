@@ -5,8 +5,10 @@ class LSFileFilter:
     Traitement et filtre de fichiers LS
     """
 
-    def __init__(self, register_number, rules_calcul=[], rules_pince=[], speed_factor_linear=100, speed_factor_joint=10):
-        # Numéro de registre pour
+    def __init__(self, register_number=0, rules_calcul=[], rules_pince=[], speed_linear=100, speed_joint=10):
+        
+       
+        # Numéro de registre        
         self.register_number = register_number
         
         # Liste des programmes a prendre en compte
@@ -14,8 +16,8 @@ class LSFileFilter:
         self.rules_pince = rules_pince
         
         # Vitesse après modification
-        self.speed_factor_linear = speed_factor_linear
-        self.speed_factor_joint = speed_factor_joint
+        self.speed_linear = speed_linear
+        self.speed_joint = speed_joint
 
         # Offset pour remonter ou descendre l'arbre des possiblités dans le SELECT R[{register_number}]
         self.offset = -1
@@ -84,7 +86,7 @@ class LSFileFilter:
         
         return True
     
-    def get_last_r_value(self, block, register_id=66):
+    def get_last_r_value(self, block, register_id):
         """
         Retourne la dernière valeur de R[register_id] dans un bloc
         """
@@ -98,6 +100,42 @@ class LSFileFilter:
 
         return last_value
     
+    def get_first_do_value(self, block, liste_do):
+        """
+        Retourne la première valeur de DO[do_id] dans un bloc
+        """
+        pattern = rf"DO\[(\d+)(?::.*?)?\]\s*=\s*(.+)"
+        first_value = None
+
+        for line in block:
+            match = re.search(pattern, line)
+            if match:
+                first_value = int(match.group(1).strip())
+                if first_value in liste_do:
+                    break
+                else:
+                    first_value = None
+
+        return first_value
+
+    def get_first_di_value(self, block, liste_di):
+        """
+        Retourne la première valeur de DI[di_id] dans un bloc
+        """
+        pattern = rf"DI\[(\d+)(?::.*?)?\]\s*=\s*(.+)"
+        first_value = None
+
+        for line in block:
+            match = re.search(pattern, line)
+            if match:
+                first_value = int(match.group(1).strip())
+                if first_value in liste_di:
+                    break
+                else:
+                    first_value = None
+
+        return first_value
+
     def get_last_calcul(self, block, liste):
         """
         Trouve le dernier programme de calcul appelé
@@ -189,7 +227,7 @@ class LSFileFilter:
         """
         Remplace tous les paramètres appelés
         """
-        line = self.modify_speed(line, self.speed_factor_linear, self.speed_factor_joint)
+        line = self.modify_speed(line, self.speed_linear, self.speed_joint)
         line = self.modify_cnt(line)
         line = self.modify_acc(line)
         line = self.modify_skip(line)

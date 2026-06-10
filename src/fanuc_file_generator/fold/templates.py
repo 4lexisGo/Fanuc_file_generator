@@ -5,21 +5,39 @@ class InitGenerator:
     Génère un programme d'init pour le robot à partir d'une liste de points
     """
 
-    def __init__(self, name_prog, memo_positon, numero_alarme):
+    def __init__(self, name_prog, alarme_value, prefixe_init="", do_ec=0, memo_positon=0):
         """
         Initialise la génération de l'init robot
         """
-        self.memo_positon = memo_positon
-        self.numero_alarme = numero_alarme
-
+        
+        self.alarme_value = alarme_value
+        
         self.bloc = [
         "!Init généré automatiquement",
-        f"!programme référence {name_prog}",
+        f"!Relatif à {name_prog}",
         ""
         ]
         
+        self.prefixe_init = prefixe_init
+        
+        self.do_ec = do_ec
+        
+        self.memo_positon = memo_positon
+        
+        
+        
     def add_bloc(self, bloc):
         self.bloc.extend(bloc)
+        
+    def add_alarme(self):
+        self.bloc.extend([
+            "LBL[997]",
+            f"GO[1]={self.alarme_value}",
+            "PAUSE",
+            "GO[1]=0",
+            "JMP LBL[998]",
+            ""
+        ])
     
     def structure_indiv(self, i, liste):
         """
@@ -36,7 +54,7 @@ class InitGenerator:
 
         self.bloc.extend(bloc)
     
-    def structure_select_main(self, liste_numero, liste_nom_programme):
+    def structure_select_main_register(self, liste_numero, liste_nom_programme):
         """
         
         """
@@ -47,7 +65,7 @@ class InitGenerator:
         ])
         # Deuxième select pour arrêt pointé
         for i, value in enumerate(liste_numero):
-            pattern = f"={value},CALL INIT_{liste_nom_programme[i]}"
+            pattern = f"={value},CALL {self.prefixe_init}{liste_nom_programme[i]}"
             
             if i == 0 and False:
                 self.bloc.append(f"SELECT R[{self.memo_positon}]{pattern}")
@@ -55,25 +73,56 @@ class InitGenerator:
             
             self.bloc.append(f"            {pattern}")
             
-        self.bloc.append("")
-
         self.bloc.extend([
-            f"GO[1]={self.numero_alarme}",
-            "PAUSE",
-            "GO[1]=0",
-            "JMP LBL[998]",
-            ""
+            "            =ELSE, JMP LBL[997]",
+            "",
+            "JMP LBL[999]"                         
+            ])
+
+        self.add_alarme()
+        
+    def end_main_register(self, is_gst_rebut, is_gst_prehenseur, programme_rebut="", programme_prehenseur="", register_prehenseur=0):
+        self.bloc.extend([
+            "LBL[999]",
+            f"R[{self.memo_positon}]=0",
         ])
         
-    def end_main(self, memo_programme, memo_piece, programme_rebut, 
-                 memo_prehenseur, programme_prehenseur):
+        if is_gst_rebut:
+            self.bloc.append(f"CALL {programme_rebut}")
+        
+        if is_gst_prehenseur:
+            self.bloc.extend([
+                f"R[{register_prehenseur}]=0",
+                f"CALL {programme_prehenseur}"
+                ])
+    
+    def structure_select_main_dido(self, liste_di, liste_programme, register_init):
         self.bloc.extend([
-            f"LBL[999]",
-            f"R[{memo_programme}]=0",
-            f"R[{self.memo_positon}]=0",
-            f"IF R[{memo_piece}]<>0,CALL {programme_rebut}",
-            f"R[{memo_prehenseur}]=0",
-            f"CALL {programme_prehenseur}"
+            "LBL[998]",
+            "",
+        ])
+            
+        for i in range(len(liste_di)):
+            self.bloc.append(f"IF DI[{liste_di[i]}]=ON, CALL {liste_programme[i]}")
+        
+        self.bloc.extend([
+            f"IF R[{register_init}]<>0, JMP LBL[997]",
+            "",
+            "JMP LBL[999]",
+            ""           
+        ])
+        
+        self.add_alarme()
+    
+    def end_main_di_do(self):
+        pass
+    
+    def start_sub_main_register(self):
+        pass
+    
+    def start_sub_main_di_do(self):
+        self.bloc.extend([
+            f"DO[{self.do_ec}]=ON",
         ])
 
     def structure_select_half_sub_main(self, liste_numero_positon):
@@ -112,7 +161,7 @@ class InitGenerator:
         self.bloc.append("")
 
         self.bloc.extend([
-            f"GO[1]={self.numero_alarme}",
+            f"GO[1]={self.alarme_value}",
             "PAUSE",
             "GO[1]=0",
             "JMP LBL[998]",
@@ -121,10 +170,18 @@ class InitGenerator:
             ""
         ])
         
-    def end_sub_main(self):
+    def end_sub_main_register(self):
         self.bloc.extend([
             "!Fin des trajectoires",
-            "LBL[999]"
+            "LBL[999]",
+        ])
+        
+    def end_sub_main_di_do(self, do_end):
+        self.bloc.extend([
+            "!Fin des trajectoires",
+            "LBL[999]",
+            f"DO[{self.do_ec}]=OFF",
+            f"DO[{do_end}]=PULSE 0.5s",
         ])
 
     

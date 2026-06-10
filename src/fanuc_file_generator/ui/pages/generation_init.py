@@ -32,7 +32,6 @@ class GenerationInitPage(ctk.CTkFrame):
         self.form.grid_columnconfigure(1, weight=1, uniform="cols")
 
         self.nb_cols = self.form.grid_size()[0]
-        print(self.form.grid_size())
 
         row = 0
         self._build_general_section(self.form, row)
@@ -44,6 +43,8 @@ class GenerationInitPage(ctk.CTkFrame):
         self._build_type_section(self.form, row)
         row += 1
         self._build_footer_section(self.form, row)
+        
+        self._edit_values()
 
     
     def _build_footer_section(self, parent, global_row):
@@ -78,9 +79,10 @@ class GenerationInitPage(ctk.CTkFrame):
         row += 1
         self.prefixe_init = labeled_entry(self.general_frame, row, "Préfixe des programmes d'init")
         CTkToolTip(self.prefixe_init,
-            message="Chaine de caractères placée avant le nom du programme source pour former le nom du programme d'init correspondant.\nExemple : préfixe = 'INIT_' => programme source 'PROG1' => programme d'init 'INIT_PROG1'"
+            message="Chaine de caractères placée avant le nom du programme source pour former le nom du programme d'init correspondant.\nExemple : préfixe = 'INIT_' => programme source 'SAB01_10' => programme d'init 'INIT_SAB01_10'"
         )
         row += 1
+        self.commentaire_init = labeled_entry(self.general_frame, row, "Commentaire des programmes d'init")
 
     def _build_settings_section(self, parent, global_row):
         self.settings_frame = ctk.CTkFrame(parent)
@@ -89,13 +91,13 @@ class GenerationInitPage(ctk.CTkFrame):
         self.settings_frame.grid_columnconfigure(1, weight=1)
 
         row = 0
-        self.registre_sub_programme = labeled_entry(self.settings_frame, row, "Registre mémorisation de la position")
+        self.register_position = labeled_entry(self.settings_frame, row, "Registre mémorisation de la position")
         row += 1
-        self.alarme_value = labeled_entry(self.settings_frame, row, "Valeur de l'alarme")
+        self.alarme_value = labeled_entry(self.settings_frame, row, "Valeur de l'alarme pour GO[1]")
         row += 1
-        self.speed_linear = labeled_entry(self.settings_frame, row, "Vitesse linéaire")
+        self.speed_linear = labeled_entry(self.settings_frame, row, "Vitesse linéaire (mm/s)")
         row += 1
-        self.speed_joint = labeled_entry(self.settings_frame, row, "Vitesse articulaire")
+        self.speed_joint = labeled_entry(self.settings_frame, row, "Vitesse articulaire (%)")
         row += 1
 
     def _build_prehenseur_section(self, parent, global_row):
@@ -111,9 +113,9 @@ class GenerationInitPage(ctk.CTkFrame):
         self.prehenseur_checkbox = ctk.CTkCheckBox(
             self.prehenseur_frame,
             text="Gestion préhenseur",
-            variable=self.prehenseur_enabled
+            variable=self.prehenseur_enabled,
+            command=lambda: toggle_frame(self.prehenseur_enabled.get(), self.prehenseur_subframe)
         )
-        self.prehenseur_enabled.trace_add("write", lambda *args: toggle_frame(self.prehenseur_enabled, self.prehenseur_subframe))
         self.prehenseur_checkbox.grid(row=0, column=0, sticky="w", padx=10, pady=5)
 
         # SOUS-FRAME (contenu toggle)
@@ -134,7 +136,7 @@ class GenerationInitPage(ctk.CTkFrame):
         )
         row += 1
 
-        self.registre_prehenseur = labeled_entry(
+        self.register_prehenseur = labeled_entry(
             self.prehenseur_subframe,
             row,
             "Registre de demande de changement"
@@ -151,9 +153,9 @@ class GenerationInitPage(ctk.CTkFrame):
         self.rebut_checkbox = ctk.CTkCheckBox(
             self.rebut_frame,
             text="Gestion rebut",
-            variable=self.rebut_enabled
+            variable=self.rebut_enabled,
+            command=lambda: toggle_frame(self.rebut_enabled.get(), self.rebut_subframe)
         )
-        self.rebut_enabled.trace_add("write", lambda *args: toggle_frame(self.rebut_enabled, self.rebut_subframe))
         self.rebut_checkbox.grid(row=0, column=0, sticky="w", padx=10, pady=5)
 
         # SOUS-FRAME (contenu toggle)
@@ -212,52 +214,60 @@ class GenerationInitPage(ctk.CTkFrame):
         self.registre_frame.grid_columnconfigure(1, weight=1)
 
         row = 0
-
-        ctk.CTkLabel(
-            self.registre_frame,
-            text="Numéro du registre"
-        ).grid(row=row, column=0, sticky="w", padx=10, pady=5)
-
-        self.registre_numero = ctk.CTkEntry(self.registre_frame)
-        self.registre_numero.grid(row=row, column=1, sticky="ew", padx=10)
+        self.register_programme = labeled_entry(self.registre_frame, row, "Registre de sélection de programme")
 
     def _build_dido_frame(self):
         self.dido_frame.grid_columnconfigure(1, weight=1)
 
         row = 0
-
-        # DI Start
-        ctk.CTkLabel(
+        self.di_start = labeled_entry(self.dido_frame, row, "DI Start")
+        row += 1
+        self.di_stop = labeled_entry(self.dido_frame, row, "DI Stop")
+        row += 1
+        self.do_start = labeled_entry(self.dido_frame, row, "DO Start")
+        row += 1
+        
+        # CHECKBOX
+        self.alternated_do_value_enabled = ctk.BooleanVar(value=True)
+        self.alternated_do_value_checkbox = ctk.CTkCheckBox(
             self.dido_frame,
-            text="DI Start"
-        ).grid(row=row, column=0, sticky="w", padx=10, pady=5)
-
-        self.di_start = ctk.CTkEntry(self.dido_frame)
-        self.di_start.grid(row=row, column=1, sticky="ew", padx=10)
-
+            text="Valeur alternée pour DO",
+            variable=self.alternated_do_value_enabled
+        )
+        self.alternated_do_value_checkbox.grid(row=row, column=0, sticky="w", padx=10, pady=5)
+        CTkToolTip(
+            self.alternated_do_value_checkbox,
+            message="DO[1:en cours], DO[2:fin], DO[3:en cours], DO[4:fin], etc ..."
+        )
         row += 1
 
-        # DI Stop
-        ctk.CTkLabel(
-            self.dido_frame,
-            text="DI Stop"
-        ).grid(row=row, column=0, sticky="w", padx=10, pady=5)
+    def _build_rebut_section(self, parent, global_row):
 
-        self.di_stop = ctk.CTkEntry(self.dido_frame)
-        self.di_stop.grid(row=row, column=1, sticky="ew", padx=10)
+        self.rebut_frame = ctk.CTkFrame(parent)
+        self.rebut_frame.grid(row=global_row, column=1, sticky="ew", padx=10, pady=10)
 
-        row += 1
+        # CHECKBOX
+        self.rebut_enabled = ctk.BooleanVar(value=False)
 
-        # DO Start
-        ctk.CTkLabel(
-            self.dido_frame,
-            text="DO Start"
-        ).grid(row=row, column=0, sticky="w", padx=10, pady=5)
-
-        self.do_start = ctk.CTkEntry(self.dido_frame)
-        self.do_start.grid(row=row, column=1, sticky="ew", padx=10)
+        self.rebut_checkbox = ctk.CTkCheckBox(
+            self.rebut_frame,
+            text="Gestion rebut",
+            variable=self.rebut_enabled
+        )
+        self.rebut_checkbox.grid(row=0, column=0, sticky="w", padx=10, pady=5)
+        
+        
+    def _edit_values(self):
+        self.main_name.insert(0, "SAB01")
+        self.prefixe_init.insert(0, "INIT_")
+        self.commentaire_init.insert(0, "Génération automatique")
+        self.speed_linear.insert(0, "100")
+        self.speed_joint.insert(0, "10")
 
     def _build_config(self):
+        
+        self.dido_enabled = True if self.type_selection.get() == "DI/DO" else False
+        self.registre_enabled = True if self.type_selection.get() == "Registre" else False
         
         return GenInitConfig(
             PATH_GLOBAL=Path(self.path_global.get()),
@@ -265,26 +275,28 @@ class GenerationInitPage(ctk.CTkFrame):
             project_name=self.project_name.get(),
             main_name=self.main_name.get(),
             prefixe_init=self.prefixe_init.get(),
-            commentaire_init="",
+            commentaire_init=self.commentaire_init.get(),
 
-            memo_init=self.memo_init.get(),
-            alarme_value=self.alarme_value.get(),
-            speed_linear=self.speed_linear.get(),
-            speed_joint=self.speed_joint.get(),
+            register_init=int(self.register_position.get()),
+            alarme_value=int(self.alarme_value.get()),
+            speed_linear=int(self.speed_linear.get()),
+            speed_joint=int(self.speed_joint.get()),
 
             is_gst_prehenseur=self.prehenseur_enabled.get(),
             programme_prehenseur=self.programme_prehenseur.get() if self.prehenseur_enabled.get() else None,
+            register_prehenseur=int(self.register_prehenseur.get()) if self.prehenseur_enabled.get() else None,
             
             is_gst_rebut=self.rebut_enabled.get(),
             programme_rebut=self.programme_rebut.get() if self.rebut_enabled.get() else None,
             
-            is_gst_dido=self.dido_enabled.get(),
-            di_start=self.di_start.get() if self.dido_enabled.get() else None,
-            di_end=self.di_stop.get() if self.dido_enabled.get() else None,
-            do_start=self.do_start.get() if self.dido_enabled.get() else None,
+            is_gst_dido=self.dido_enabled,
+            di_start=int(self.di_start.get()) if self.dido_enabled else None,
+            di_stop=int(self.di_stop.get()) if self.dido_enabled else None,
+            do_start=int(self.do_start.get()) if self.dido_enabled else None,
+            is_alternated_do_value=self.alternated_do_value_enabled.get(),
             
-            is_gst_registre=self.registre_enabled.get(),
-            register_number=self.registre_numero.get() if self.registre_enabled.get() else None
+            is_gst_register=self.registre_enabled,
+            register_programme=int(self.register_programme.get()) if self.registre_enabled else None
         )
     
     # UI HELPERS

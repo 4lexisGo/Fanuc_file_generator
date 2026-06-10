@@ -41,7 +41,7 @@ def labeled_entry(parent, row, text):
     return entry
 
 def toggle_frame(enabled_var, frame):
-    if enabled_var.get():
+    if enabled_var:
         frame.grid()
     else:
         frame.grid_remove()
