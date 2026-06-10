@@ -1,5 +1,5 @@
-from fanuc_file_generator.ui.dialogs import select_folder
-from fanuc_file_generator.utils.file import resource_path
+from fanuc_file_generator.ui.utils import add_folder, labeled_entry, toggle_frame
+from fanuc_file_generator.utils.config_data import GenInitConfig
 from fanuc_file_generator.fold.test_init import main as main_init
 
 import customtkinter as ctk
@@ -13,39 +13,34 @@ class GenerationInitPage(ctk.CTkFrame):
         super().__init__(parent)
         self.app = app
 
-        self.CONFIG_FILE = Path(resource_path("assets/config_user.json"))
-
-        # =====================
         # GRID ROOT
-        # =====================
-        self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=0)
         self.grid_rowconfigure(1, weight=1)
 
-        # =====================
         # TITLE
-        # =====================
         ctk.CTkLabel(
             self,
             text="Génération INIT",
             font=ctk.CTkFont(size=22, weight="bold")
         ).grid(row=0, column=0, sticky="w", padx=10, pady=20)
 
-        # =====================
         # MAIN FORM
-        # =====================
         self.form = ctk.CTkFrame(self)
         self.form.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
 
-        self.form.grid_columnconfigure(0, weight=1)
+        self.form.grid_columnconfigure(0, weight=1, uniform="cols")
+        self.form.grid_columnconfigure(1, weight=1, uniform="cols")
+
+        self.nb_cols = self.form.grid_size()[0]
+        print(self.form.grid_size())
 
         row = 0
         self._build_general_section(self.form, row)
         row += 1
         self._build_prehenseur_section(self.form, row)
-        row += 1
         self._build_rebut_section(self.form, row)
         row += 1
+        self._build_settings_section(self.form, row)
         self._build_type_section(self.form, row)
         row += 1
         self._build_footer_section(self.form, row)
@@ -53,7 +48,7 @@ class GenerationInitPage(ctk.CTkFrame):
     
     def _build_footer_section(self, parent, global_row):
         self.footer = ctk.CTkFrame(parent)
-        self.footer.grid(row=global_row, column=0, sticky="ew", padx=10, pady=10)
+        self.footer.grid(row=global_row, column=0, columnspan=self.nb_cols, sticky="ew", padx=10, pady=10)
 
         self.footer.grid_columnconfigure(0, weight=1)
 
@@ -67,44 +62,41 @@ class GenerationInitPage(ctk.CTkFrame):
     def _build_general_section(self, parent, global_row):
 
         self.general_frame = ctk.CTkFrame(parent)
-        self.general_frame.grid(row=global_row, column=0, sticky="ew", padx=10, pady=10)
+        self.general_frame.grid(row=global_row, column=0, columnspan=self.nb_cols, sticky="ew", padx=10, pady=10)
 
         self.general_frame.grid_columnconfigure(1, weight=1)
 
         row = 0
-
-        ctk.CTkLabel(self.general_frame, text="Dossier de travail").grid(
-            row=row, column=0, sticky="w", padx=10, pady=5
-        )
-
-        self.path_global = ctk.CTkEntry(self.general_frame)
-        self.path_global.grid(row=row, column=1, sticky="ew", padx=10)
-
-        ctk.CTkButton(
-            self.general_frame,
-            text="...",
-            width=60,
-            command=lambda: select_folder(self.path_global)
-        ).grid(row=row, column=2, padx=5)
-
+        self.path_global = add_folder(self.general_frame, row, "Dossier de travail")
         row += 1
-
-        self.project_name = self._labeled_entry(self.general_frame, row, "Nom du projet")
+        self.project_name = labeled_entry(self.general_frame, row, "Nom du projet")
         CTkToolTip(self.project_name,
             message="Nom du client ou identifiant projet"
         )
         row += 1
-
-        self.main_name = self._labeled_entry(self.general_frame, row, "Nom du programme principale")
+        self.main_name = labeled_entry(self.general_frame, row, "Nom du programme principale")
         row += 1
-
-        self.prefixe_init = self._labeled_entry(self.general_frame, row, "Préfixe des programmes d'init")
+        self.prefixe_init = labeled_entry(self.general_frame, row, "Préfixe des programmes d'init")
         CTkToolTip(self.prefixe_init,
             message="Chaine de caractères placée avant le nom du programme source pour former le nom du programme d'init correspondant.\nExemple : préfixe = 'INIT_' => programme source 'PROG1' => programme d'init 'INIT_PROG1'"
         )
         row += 1
 
-        self.registre_sub_programme = self._labeled_entry(self.general_frame, row, "Registre mémorisation de la position")
+    def _build_settings_section(self, parent, global_row):
+        self.settings_frame = ctk.CTkFrame(parent)
+        self.settings_frame.grid(row=global_row, column=0, sticky="ew", padx=10, pady=10)
+
+        self.settings_frame.grid_columnconfigure(1, weight=1)
+
+        row = 0
+        self.registre_sub_programme = labeled_entry(self.settings_frame, row, "Registre mémorisation de la position")
+        row += 1
+        self.alarme_value = labeled_entry(self.settings_frame, row, "Valeur de l'alarme")
+        row += 1
+        self.speed_linear = labeled_entry(self.settings_frame, row, "Vitesse linéaire")
+        row += 1
+        self.speed_joint = labeled_entry(self.settings_frame, row, "Vitesse articulaire")
+        row += 1
 
     def _build_prehenseur_section(self, parent, global_row):
 
@@ -121,7 +113,7 @@ class GenerationInitPage(ctk.CTkFrame):
             text="Gestion préhenseur",
             variable=self.prehenseur_enabled
         )
-        self.prehenseur_enabled.trace_add("write", lambda *args: self._toggle_prehenseur())
+        self.prehenseur_enabled.trace_add("write", lambda *args: toggle_frame(self.prehenseur_enabled, self.prehenseur_subframe))
         self.prehenseur_checkbox.grid(row=0, column=0, sticky="w", padx=10, pady=5)
 
         # SOUS-FRAME (contenu toggle)
@@ -135,14 +127,14 @@ class GenerationInitPage(ctk.CTkFrame):
         # Champs
         row = 0
 
-        self.programme_prehenseur = self._labeled_entry(
+        self.programme_prehenseur = labeled_entry(
             self.prehenseur_subframe,
             row,
             "Programme préhenseur"
         )
         row += 1
 
-        self.registre_prehenseur = self._labeled_entry(
+        self.registre_prehenseur = labeled_entry(
             self.prehenseur_subframe,
             row,
             "Registre de demande de changement"
@@ -151,7 +143,7 @@ class GenerationInitPage(ctk.CTkFrame):
     def _build_rebut_section(self, parent, global_row):
 
         self.rebut_frame = ctk.CTkFrame(parent)
-        self.rebut_frame.grid(row=global_row, column=0, sticky="ew", padx=10, pady=10)
+        self.rebut_frame.grid(row=global_row, column=1, sticky="ew", padx=10, pady=10)
 
         # CHECKBOX
         self.rebut_enabled = ctk.BooleanVar(value=False)
@@ -161,7 +153,7 @@ class GenerationInitPage(ctk.CTkFrame):
             text="Gestion rebut",
             variable=self.rebut_enabled
         )
-        self.rebut_enabled.trace_add("write", lambda *args: self._toggle_rebut())
+        self.rebut_enabled.trace_add("write", lambda *args: toggle_frame(self.rebut_enabled, self.rebut_subframe))
         self.rebut_checkbox.grid(row=0, column=0, sticky="w", padx=10, pady=5)
 
         # SOUS-FRAME (contenu toggle)
@@ -174,7 +166,7 @@ class GenerationInitPage(ctk.CTkFrame):
 
         # Champs
         row = 0
-        self.programme_rebut = self._labeled_entry(self.rebut_subframe, row, "Programme de rebut")
+        self.programme_rebut = labeled_entry(self.rebut_subframe, row, "Programme de rebut")
 
         CTkToolTip(
             self.programme_rebut,
@@ -185,7 +177,7 @@ class GenerationInitPage(ctk.CTkFrame):
     def _build_type_section(self, parent, global_row):
 
         self.type_frame = ctk.CTkFrame(parent)
-        self.type_frame.grid(row=global_row, column=0, sticky="ew", padx=10, pady=10)
+        self.type_frame.grid(row=global_row, column=1, sticky="ew", padx=10, pady=10)
 
         ctk.CTkLabel(
             self.type_frame,
@@ -215,8 +207,6 @@ class GenerationInitPage(ctk.CTkFrame):
         self.dido_frame.grid_remove()
 
         self._on_type_changed("DI/DO")
-        
-        
 
     def _build_registre_frame(self):
         self.registre_frame.grid_columnconfigure(1, weight=1)
@@ -267,16 +257,37 @@ class GenerationInitPage(ctk.CTkFrame):
         self.do_start = ctk.CTkEntry(self.dido_frame)
         self.do_start.grid(row=row, column=1, sticky="ew", padx=10)
 
-    # =========================================================
-    # UI HELPERS
-    # =========================================================
-
-    def _labeled_entry(self, parent, row, text):
-        ctk.CTkLabel(parent, text=text).grid(row=row, column=0, sticky="w", padx=10, pady=5)
-        entry = ctk.CTkEntry(parent)
-        entry.grid(row=row, column=1, sticky="ew", padx=10)
-        return entry
+    def _build_config(self):
         
+        return GenInitConfig(
+            PATH_GLOBAL=Path(self.path_global.get()),
+
+            project_name=self.project_name.get(),
+            main_name=self.main_name.get(),
+            prefixe_init=self.prefixe_init.get(),
+            commentaire_init="",
+
+            memo_init=self.memo_init.get(),
+            alarme_value=self.alarme_value.get(),
+            speed_linear=self.speed_linear.get(),
+            speed_joint=self.speed_joint.get(),
+
+            is_gst_prehenseur=self.prehenseur_enabled.get(),
+            programme_prehenseur=self.programme_prehenseur.get() if self.prehenseur_enabled.get() else None,
+            
+            is_gst_rebut=self.rebut_enabled.get(),
+            programme_rebut=self.programme_rebut.get() if self.rebut_enabled.get() else None,
+            
+            is_gst_dido=self.dido_enabled.get(),
+            di_start=self.di_start.get() if self.dido_enabled.get() else None,
+            di_end=self.di_stop.get() if self.dido_enabled.get() else None,
+            do_start=self.do_start.get() if self.dido_enabled.get() else None,
+            
+            is_gst_registre=self.registre_enabled.get(),
+            register_number=self.registre_numero.get() if self.registre_enabled.get() else None
+        )
+    
+    # UI HELPERS
     def _on_type_changed(self, value=None):
         value = value or self.type_selection.get()
 
@@ -296,38 +307,10 @@ class GenerationInitPage(ctk.CTkFrame):
                 pady=5
             )
 
-    def _toggle_prehenseur(self):
-
-        if self.prehenseur_enabled.get():
-            self.prehenseur_subframe.grid()
-        else:
-            self.prehenseur_subframe.grid_remove()
-
-    def _toggle_rebut(self):
-
-        if self.rebut_enabled.get():
-            self.rebut_subframe.grid()
-        else:
-            self.rebut_subframe.grid_remove()
-
     def _run_generation(self):
 
         self.app.console.log("Début génération INIT...")
 
-        main_init(
-            memo_programme=self.main_name.get(),
-            memo_init=self.registre_sub_programme.get(),
-            numero_alarme=self.registre_numero.get() if self.type_selection.get() == "Registre" else None,
-            memo_piece=None,
-            memo_prehenseur=self.registre_prehenseur.get() if self.prehenseur_enabled.get() else None,
-            programme_prehenseur=self.programme_prehenseur.get() if self.prehenseur_enabled.get() else None,
-            programme_rebut=self.programme_rebut.get() if self.rebut_enabled.get() else None,
-            project_name=self.project_name.get(),
-            main_name=self.main_name.get(),
-            prefixe_init=self.prefixe_init.get(),
-            commentaire_init="",
-            PATH_GLOBAL=Path(self.path_global.get()),
-            abort_on_missing_argument=False
-        )
+        main_init(self._build_config())
 
         self.app.console.log("Génération terminée avec succès")

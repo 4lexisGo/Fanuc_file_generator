@@ -1,8 +1,10 @@
+from fanuc_file_generator.ui.utils import add_folder, labeled_entry
 from fanuc_file_generator.fold.test_init import edit
+from fanuc_file_generator.utils.config_data import EditInitConfig
 
 from pathlib import Path
 import customtkinter as ctk
-from tkinter import filedialog
+
 
 class EditionInitPage(ctk.CTkFrame):
 
@@ -10,73 +12,68 @@ class EditionInitPage(ctk.CTkFrame):
         super().__init__(parent)
         self.app = app
 
-        self.grid_columnconfigure(1, weight=1)
+        # GRID ROOT
+        self.grid_rowconfigure(0, weight=0)
+        self.grid_rowconfigure(1, weight=1)
 
+        # TITLE
         ctk.CTkLabel(
             self,
             text="Édition INIT",
             font=ctk.CTkFont(size=22, weight="bold")
-        ).grid(row=0, column=0, columnspan=3, pady=20, sticky="w")
+        ).grid(row=0, column=0, sticky="w", padx=10, pady=20)
 
+        # MAIN FORM
         self.form = ctk.CTkFrame(self)
+        self.form.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
 
-        self.dir1 = self._add_folder(1, "Dossier SOURCE")
-        self.dir2 = self._add_folder(2, "Dossier INIT")
+        self.grid_columnconfigure(0, weight=1)
+        self.nb_cols = self.form.grid_size()[0]
 
-        self.prefixe = self._entry(3, "prefixe")
+        row = 0
+        self._build_main_section(self.form, row)
+        row += 1
+        self._build_footer_section(self.form, row)
+        row += 1
+    
+    def _build_footer_section(self, parent, global_row):
+        self.footer = ctk.CTkFrame(parent)
+        self.footer.grid(row=global_row, column=0, sticky="ew", padx=10, pady=10)
 
-        ctk.CTkButton(
-            self,
-            text="Valider édition",
-            command=self.validate
-        ).grid(row=3, column=0, columnspan=3, pady=20, sticky="ew")
+        self.footer.grid_columnconfigure(0, weight=1)
 
-    def _entry(self, row, label):
-        ctk.CTkLabel(self.form, text=label).grid(
-            row=row, column=0, sticky="w", padx=10, pady=5
+        self.validate_button = ctk.CTkButton(
+            self.footer,
+            text="Editer",
+            command=self._run_edit
+        )
+        self.validate_button.grid(row=0, column=0, sticky="ew")
+
+    def _build_main_section(self, parent, global_row):
+        self.main_frame = ctk.CTkFrame(parent)
+        self.main_frame.grid(row=global_row, column=0, sticky="nsew", padx=10, pady=10)
+
+        row = 0
+        self.dir1 = add_folder(self.main_frame, row, "Dossier SOURCE")
+        row += 1
+        self.dir2 = add_folder(self.main_frame, row, "Dossier INIT")
+        row += 1
+        self.prefixe = labeled_entry(self.main_frame, row, "prefixe")
+        row += 1
+
+    def _build_config(self):
+        
+        return EditInitConfig(
+            PATH_SOURCE=Path(self.dir1.get()),
+            PATH_INIT=Path(self.dir2.get()),
+            prefixe_init=self.prefixe.get()
         )
 
-        e = ctk.CTkEntry(self.form)
-        e.grid(row=row, column=1, columnspan=2, sticky="ew", padx=10)
-        return e
+    def _run_edit(self):
 
-    def _select_folder(self, entry):
-        folder = filedialog.askdirectory()
-        if folder:
-            entry.delete(0, "end")
-            entry.insert(0, folder)
-
-    def _add_folder(self, row, label):
-        ctk.CTkLabel(self, text=label).grid(
-            row=row,
-            column=0,
-            sticky="w",
-            padx=10,
-            pady=5
-        )
-
-        entry = ctk.CTkEntry(self)
-        entry.grid(row=row, column=1, sticky="ew", padx=10)
-
-        ctk.CTkButton(
-            self,
-            text="Parcourir",
-            command=lambda e=entry: self._select_folder(e)
-        ).grid(row=row, column=2)
-
-        return entry
-
-    def validate(self):
-        app = self.app
+        self.app.console.log("Début édition INIT...")
         
-        # STR
-        def check_str(v, name):
-            return v.strip()
+        edit(self._build_config())
 
-        dir1 = Path(self.dir1.get())
-        
-        dir2 = Path(self.dir2.get())
-            
-        prefixe = check_str(self.prefixe.get(), "prefixe")
+        self.app.console.log("Édition terminée avec succès")
 
-        edit(dir1, dir2, prefixe)
