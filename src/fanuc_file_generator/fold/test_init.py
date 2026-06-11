@@ -2,7 +2,7 @@ from fanuc_file_generator.ls_generator.build import LSFileBuilder, LSFileEditer
 from fanuc_file_generator.ls_generator.parser import LSFileFilter
 from fanuc_file_generator.utils.file import normalize_extensions, get_fichiers
 from fanuc_file_generator.fold.templates import InitGenerator
-from fanuc_file_generator.utils.config_data import GenInitConfig
+from fanuc_file_generator.utils.config_data import GenInitConfig, EditInitConfig
 
 from pathlib import Path
 import shutil
@@ -19,6 +19,7 @@ def create_folders_gen_init(PATH_GLOBAL):
     PATH_SOURCE.mkdir(exist_ok=True)
     PATH_CALCUL.mkdir(exist_ok=True)
     PATH_PINCE.mkdir(exist_ok=True)
+    shutil.rmtree(PATH_DESTINATION, ignore_errors=True)
     PATH_DESTINATION.mkdir(exist_ok=True)
     
     return PATH_SOURCE, PATH_CALCUL, PATH_PINCE, PATH_DESTINATION, PATH_EDIT
@@ -29,26 +30,41 @@ class GenInit:
         
         self.liste_nom_programme = []
         self.liste_value_register_programme = []
+
+        self.main()
+
+    def gst_liste_do(self):
+
+        if self.config.is_di_start_stop:
+            liste_di = list(range(self.config.di_start, self.config.di_stop+1))
+
+        elif self.config.is_di_liste:
+            liste_di = self.config.di_liste
+
+        else:
+            raise ValueError("Pas de gestion de di selectionné")
         
-    def gst_dido(self):
-        
-        liste_di = list(range(self.config.di_start, self.config.di_stop+1))
-        
-        nb_prog = self.config.di_stop - self.config.di_start + 1
+        nb_prog = len(liste_di)
         do_stop = self.config.do_start + nb_prog*2 - 1
-        
+
         liste_do_ec = []
         liste_do_end = []
         
         if self.config.is_alternated_do_value:
-            for i in range(self.config.do_start, do_stop):
-                if i % 2 == 0:
+            for idx, i in enumerate(range(self.config.do_start, do_stop)):
+                if idx % 2 == 0:
                     liste_do_ec.append(i)
                 else:
                     liste_do_end.append(i)
         else:
-            liste_do_ec = list(range(self.config.do_start, self.config.do_start + nb_prog))
-            liste_do_end = list(range(self.config.do_start + nb_prog +1, do_stop))
+            liste_do_ec = list(range(self.config.do_start, self.config.do_start+nb_prog))
+            liste_do_end = list(range(self.config.do_start+nb_prog, do_stop+1))
+        return liste_di, liste_do_ec, liste_do_end
+        
+    def gst_dido(self):
+
+        liste_di, liste_do_ec, liste_do_end = self.gst_liste_do()
+
         
         for i, programme in enumerate(self.liste_programme):
             
@@ -69,13 +85,14 @@ class GenInit:
                     continue
                 
             # Stockage
+            index = liste_do_ec.index(first_value)
             self.liste_nom_programme.append(programme.stem)
-            self.liste_value_register_programme.append(liste_di(liste_do_ec.index(first_value)))
+            self.liste_value_register_programme.append(liste_di(index))
             # Création de l'objet parser
             obj = LSFileFilter(register_number=self.config.register_init, rules_calcul=self.liste_calcul, rules_pince=self.liste_pince)
                     
             # Création du sous programme init
-            obj1 = InitGenerator(f"{programme.stem}", self.config.alarme_value, self.config.prefixe_init, liste_do_ec[i])
+            obj1 = InitGenerator(f"{programme.stem}", self.config.alarme_value, self.config.prefixe_init, liste_do_ec[index])
 
             # Tri des lignes MN et POS du programme d'origine
             pos_lines = obj.keep_pos(programme)
@@ -96,7 +113,7 @@ class GenInit:
             obj1.structure_select_sub_main(liste_valeur_registre, liste_offset)
             for i, bloc in enumerate(liste_bloc):
                 obj1.structure_indiv(i+1, bloc)
-            obj1.end_main_di_do()
+            obj1.end_main_di_do(liste_do_end[index])
             
             # Construction du sous programme d'init
             obj3 = LSFileBuilder(
@@ -120,9 +137,6 @@ class GenInit:
         init_principale_file.add_mn_lines(init_principale.bloc)
         init_principale_file.build_file()
             
-            
-        
-        
     def gst_register(self):
         
         for programme in self.liste_programme:
@@ -217,81 +231,49 @@ class GenInit:
             self.gst_register()
 
         
+class EditInit:
+    def __init__(self, config : EditInitConfig):
+        self.config = config
 
-def edit(path_source, path_init, prefixe):
-    """
-    
-    """
-    normalize_extensions(path_source)
-    liste_source = get_fichiers(path_source, root=True)
+        self.main()
 
-    normalize_extensions(path_init)
-    liste_init = get_fichiers(path_init, root=True)
+    def main(self):
+        """
+        
+        """
+        normalize_extensions(self.config.PATH_SOURCE)
+        liste_source = get_fichiers(self.config.PATH_SOURCE, root=True)
 
-    # Vérification du nombre
-    if len(liste_source) != len(liste_init):
-        raise ValueError(
-            f"Nombre de fichiers différent : "
-            f"{len(liste_source)} source(s) / {len(liste_init)} init(s)"
-        )
+        normalize_extensions(self.config.PATH_INIT)
+        liste_init = get_fichiers(self.config.PATH_INIT, root=True)
 
-    # Vérification des correspondances
-    fichiers_init = {f.name for f in liste_init}
-
-    for programme in liste_source:
-        expected_name = f"{prefixe}{programme.name}"
-
-        if expected_name not in fichiers_init:
-            raise FileNotFoundError(
-                f"Fichier INIT manquant pour {programme.name} "
-                f"(attendu : {expected_name})"
+        # Vérification du nombre
+        if len(liste_source) != len(liste_init):
+            raise ValueError(
+                f"Nombre de fichiers différent : "
+                f"{len(liste_source)} source(s) / {len(liste_init)} init(s)"
             )
 
-    # Traitement
-    for programme in liste_source:
-        obj = LSFileFilter(66)
+        # Vérification des correspondances
+        fichiers_init = {f.name for f in liste_init}
 
-        pos_lines = obj.keep_pos(programme)
+        for programme in liste_source:
+            expected_name = f"{self.config.prefixe_init}{programme.name}"
 
-        file_init = path_init / f"{prefixe}{programme.name}"
+            if expected_name not in fichiers_init:
+                raise FileNotFoundError(
+                    f"Fichier INIT manquant pour {programme.name} "
+                    f"(attendu : {expected_name})"
+                )
 
-        obj1 = LSFileEditer(file_init)
-        obj1.overwrite_pos(pos_lines)
+        # Traitement
+        for programme in liste_source:
+            obj = LSFileFilter(66)
 
-        
-    
-if __name__ == "__main__":
-    
-    """memo_programme = 100
-    memo_init = 99
-    numero_alarme = 32
-    memo_piece = 99
-    memo_prehenseur = 98
+            pos_lines = obj.keep_pos(programme)
 
-    programme_prehenseur = "CHANG_OUTIL"
-    programme_rebut = "REBUT"
+            file_init = self.config.PATH_INIT / f"{self.config.prefixe_init}{programme.name}"
 
-    project_name = "CHASSIGNOL"
-    main_name = "CYCLE1"
-
-    name_init = "INIT_"
-
-    commentaire_init = "Génération auto"
-
-    PATH_GLOBAL = Path(r"TEST")
-
-    abort_on_missing_argument = False
-    
-    main(memo_programme, memo_init, numero_alarme, memo_piece, 
-         memo_prehenseur, programme_prehenseur, programme_rebut, 
-         project_name, main_name, name_init, commentaire_init,
-         PATH_GLOBAL, abort_on_missing_argument
-        )"""
-    
-    path_source = Path(r"C:\Users\alexis.gosetto\Desktop\EDIT_INIT\SOURCE")
-    path_init = Path(r"C:\Users\alexis.gosetto\Desktop\EDIT_INIT\INIT")
-
-    prefixe = "INIT_"
-
-    edit(path_source, path_init, prefixe)
+            obj1 = LSFileEditer(file_init)
+            obj1.overwrite_pos(pos_lines)
 

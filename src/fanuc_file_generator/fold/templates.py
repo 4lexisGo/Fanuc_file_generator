@@ -181,7 +181,7 @@ class InitGenerator:
             "!Fin des trajectoires",
             "LBL[999]",
             f"DO[{self.do_ec}]=OFF",
-            f"DO[{do_end}]=PULSE 0.5s",
+            f"DO[{do_end}]=PULSE,0.5sec",
         ])
 
     

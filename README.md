@@ -59,3 +59,5 @@ The project is organized into reusable sub-packages:
 - Easy reproducibility
 
 ---
+
+pyinstaller --clean main.spec

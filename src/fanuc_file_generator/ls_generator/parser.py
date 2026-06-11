@@ -205,11 +205,10 @@ class LSFileFilter:
         Remplace les accélérations Fanuc :
         - ACCxx → rien
         """
-        match = re.search(r"\bACC(\d+)\b", line)
+        pattern = r"\bACC(\d+)\b"
+        match = re.search(pattern, line)
         if match and int(match.group(1)) >= 100:
-            line = re.sub(r"\bACC\d+\b", 
-                          "", 
-                          line)
+            line = re.sub(pattern, "", line)
 
         return line
     
@@ -217,9 +216,8 @@ class LSFileFilter:
         """
         Enleve les skip condition
         """
-        line = re.sub(r"\s+Skip\S*(?=\s|$)", 
-                      "", 
-                      line)
+        pattern = r"\s+Skip\S*(?=\s|$)"
+        line = re.sub(pattern, "", line)
 
         return line
     

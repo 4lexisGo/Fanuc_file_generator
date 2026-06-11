@@ -1,5 +1,5 @@
 from fanuc_file_generator.ui.utils import add_folder, labeled_entry
-from fanuc_file_generator.fold.test_init import edit
+from fanuc_file_generator.fold.test_init import EditInit
 from fanuc_file_generator.utils.config_data import EditInitConfig
 
 from pathlib import Path
@@ -73,7 +73,7 @@ class EditionInitPage(ctk.CTkFrame):
 
         self.app.console.log("Début édition INIT...")
         
-        edit(self._build_config())
+        EditInit(self._build_config())
 
         self.app.console.log("Édition terminée avec succès")
 
