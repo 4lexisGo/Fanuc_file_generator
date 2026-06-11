@@ -45,7 +45,7 @@ class GenInit:
             raise ValueError("Pas de gestion de di selectionné")
         
         nb_prog = len(liste_di)
-        do_stop = self.config.do_start + nb_prog*2 - 1
+        do_stop = self.config.do_start + nb_prog*2
 
         liste_do_ec = []
         liste_do_end = []
@@ -80,14 +80,14 @@ class GenInit:
             # Vérifie la conformité du programme
             if first_value is None:
                 print(f"{programme.name} : absence de registre programme")
-                first_value = 0
+                first_value = liste_do_ec[0]
                 if self.config.abort_on_missing_argument:
                     continue
                 
             # Stockage
             index = liste_do_ec.index(first_value)
             self.liste_nom_programme.append(programme.stem)
-            self.liste_value_register_programme.append(liste_di(index))
+            self.liste_value_register_programme.append(liste_di[index])
             # Création de l'objet parser
             obj = LSFileFilter(register_number=self.config.register_init, rules_calcul=self.liste_calcul, rules_pince=self.liste_pince)
                     
@@ -113,7 +113,7 @@ class GenInit:
             obj1.structure_select_sub_main(liste_valeur_registre, liste_offset)
             for i, bloc in enumerate(liste_bloc):
                 obj1.structure_indiv(i+1, bloc)
-            obj1.end_main_di_do(liste_do_end[index])
+            obj1.end_sub_main_di_do(liste_do_end[index])
             
             # Construction du sous programme d'init
             obj3 = LSFileBuilder(

@@ -113,6 +113,11 @@ class GenerationInitPage(ctk.CTkFrame):
         )
         self.abort_on_missing_argument.grid(row=row, column=0, sticky="w", padx=10, pady=5)
 
+        CTkToolTip(
+            self.abort_on_missing_argument,
+            message="Le programme arrête la génération pour les sous programmes qui ne remplissent pas les critères de registre ou DI/DO associés à leur programme"
+        )
+
     def _build_prehenseur_section(self, parent, global_row):
 
         # FRAME PRINCIPALE
@@ -292,6 +297,12 @@ class GenerationInitPage(ctk.CTkFrame):
     def _build_liste_di(self, row):
         self.di_liste_frame.grid_columnconfigure(1, weight=1)
         self.di_liste_raw = labeled_entry(self.di_liste_frame, row, "Liste de DI")
+
+        CTkToolTip(
+            self.di_liste_raw,
+            message="Ecrire la liste dans le meme ordre que les DO et les séparer par .,:|"
+        )
+
         
     def _edit_values(self):
         self.main_name.insert(0, "SAB01")
@@ -303,23 +314,23 @@ class GenerationInitPage(ctk.CTkFrame):
     def _build_config(self):
         
         if self.type_selection.get() == "DI/DO":
-            self.dido_enabled = True
-            is_di_start_stop = True if self.methode_selection == "Start-Stop" else False
-            is_di_liste = True if self.methode_selection == "Liste" else False
+            dido_enabled = True
+            is_di_start_stop = True if self.methode_selection.get() == "Start-Stop" else False
+            is_di_liste = True if self.methode_selection.get() == "Liste" else False
         else :
             is_di_start_stop = False
-            self.dido_enabled = False
+            dido_enabled = False
             is_di_liste = False
 
         di_liste = []
         if is_di_liste:
-            for x in re.split(r"[.,;:|\s]+", self.di_liste_raw.strip()):
+            for x in re.split(r"[.,;:|\s]+", self.di_liste_raw.get().strip()):
                 if not x:
                     continue
 
                 di_liste.append(int(x))
 
-        self.registre_enabled = True if self.type_selection.get() == "Registre" else False
+        registre_enabled = True if self.type_selection.get() == "Registre" else False
         
         return GenInitConfig(
             PATH_GLOBAL=Path(self.path_global.get()),
@@ -342,17 +353,17 @@ class GenerationInitPage(ctk.CTkFrame):
             is_gst_rebut=self.rebut_enabled.get(),
             programme_rebut=self.programme_rebut.get() if self.rebut_enabled.get() else None,
             
-            is_gst_dido=self.dido_enabled,
-            do_start=int(self.do_start.get()) if self.dido_enabled else None,
+            is_gst_dido=dido_enabled,
+            do_start=int(self.do_start.get()) if dido_enabled else None,
             is_alternated_do_value=self.alternated_do_value_enabled.get(),
             is_di_start_stop=is_di_start_stop,
-            di_start=int(self.di_start.get()) if self.dido_enabled else None,
-            di_stop=int(self.di_stop.get()) if self.dido_enabled else None,
+            di_start=int(self.di_start.get()) if is_di_start_stop else None,
+            di_stop=int(self.di_stop.get()) if is_di_start_stop else None,
             is_di_liste=is_di_liste,
             di_liste=di_liste if is_di_liste else None,
             
-            is_gst_register=self.registre_enabled,
-            register_programme=int(self.register_programme.get()) if self.registre_enabled else None
+            is_gst_register=registre_enabled,
+            register_programme=int(self.register_programme.get()) if registre_enabled else None
         )
     
     # UI HELPERS
