@@ -21,7 +21,7 @@ class EditionInitPage(ctk.CTkFrame):
             self,
             text="Édition INIT",
             font=ctk.CTkFont(size=22, weight="bold")
-        ).grid(row=0, column=0, sticky="w", padx=10, pady=20)
+        ).grid(row=0, column=0, sticky="w", padx=10, pady=10)
 
         # MAIN FORM
         self.form = ctk.CTkFrame(self)
@@ -70,10 +70,10 @@ class EditionInitPage(ctk.CTkFrame):
         )
 
     def _run_edit(self):
-
+        self.app.console.clear()
         self.app.console.log("Début édition INIT...")
         
-        EditInit(self._build_config())
+        EditInit(self._build_config(), self.app.console)
 
         self.app.console.log("Édition terminée avec succès")
 

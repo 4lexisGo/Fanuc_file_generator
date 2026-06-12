@@ -84,7 +84,7 @@ class InitGenerator:
     def end_main_register(self, is_gst_rebut, is_gst_prehenseur, programme_rebut="", programme_prehenseur="", register_prehenseur=0):
         self.bloc.extend([
             "LBL[999]",
-            f"R[{self.memo_positon}]=0",
+            ""
         ])
         
         if is_gst_rebut:
@@ -114,8 +114,20 @@ class InitGenerator:
         
         self.add_alarme()
     
-    def end_main_di_do(self):
-        pass
+    def end_main_dido(self, is_gst_rebut, is_gst_prehenseur, programme_rebut="", programme_prehenseur="", register_prehenseur=0):
+        self.bloc.extend([
+            "LBL[999]",
+            ""
+        ])
+        
+        if is_gst_rebut:
+            self.bloc.append(f"CALL {programme_rebut}")
+        
+        if is_gst_prehenseur:
+            self.bloc.extend([
+                f"R[{register_prehenseur}]=0",
+                f"CALL {programme_prehenseur}"
+                ])
     
     def start_sub_main_register(self):
         pass
@@ -123,6 +135,7 @@ class InitGenerator:
     def start_sub_main_di_do(self):
         self.bloc.extend([
             f"DO[{self.do_ec}]=ON",
+            ""
         ])
 
     def structure_select_half_sub_main(self, liste_numero_positon):

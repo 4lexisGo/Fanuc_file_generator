@@ -6,6 +6,7 @@ from fanuc_file_generator.utils.config_data import GenInitConfig, EditInitConfig
 
 from pathlib import Path
 import shutil
+import os
 
 def create_folders_gen_init(PATH_GLOBAL):
     PATH_SOURCE = PATH_GLOBAL/"SOURCE"
@@ -25,8 +26,9 @@ def create_folders_gen_init(PATH_GLOBAL):
     return PATH_SOURCE, PATH_CALCUL, PATH_PINCE, PATH_DESTINATION, PATH_EDIT
 
 class GenInit:
-    def __init__(self, config: GenInitConfig):
+    def __init__(self, config: GenInitConfig, console=None):
         self.config = config
+        self.console = console
         
         self.liste_nom_programme = []
         self.liste_value_register_programme = []
@@ -42,6 +44,7 @@ class GenInit:
             liste_di = self.config.di_liste
 
         else:
+            self.console.log("Pas de gestion de di selectionné")
             raise ValueError("Pas de gestion de di selectionné")
         
         nb_prog = len(liste_di)
@@ -64,9 +67,14 @@ class GenInit:
     def gst_dido(self):
 
         liste_di, liste_do_ec, liste_do_end = self.gst_liste_do()
-
+        liste_di.append(0)
+        liste_do_ec.append(0)
+        liste_do_end.append(0)
         
         for i, programme in enumerate(self.liste_programme):
+
+            # Création du nom du sous programme d'init
+            stem_prog_init = f"{self.config.prefixe_init}{programme.stem}"
             
             # Création de l'objet parser
             sub_obj = LSFileFilter()
@@ -79,20 +87,26 @@ class GenInit:
             
             # Vérifie la conformité du programme
             if first_value is None:
+                self.console.warning(f"{programme.name} : absence de registre programme")
                 print(f"{programme.name} : absence de registre programme")
-                first_value = liste_do_ec[0]
                 if self.config.abort_on_missing_argument:
                     continue
-                
-            # Stockage
-            index = liste_do_ec.index(first_value)
-            self.liste_nom_programme.append(programme.stem)
-            self.liste_value_register_programme.append(liste_di[index])
+                first_value = 0
+                index = -1
+                self.liste_nom_programme.append(stem_prog_init)
+                self.liste_value_register_programme.append(0)
+            else:
+                index = liste_do_ec.index(first_value)
+                self.liste_nom_programme.append(stem_prog_init)
+                self.liste_value_register_programme.append(liste_di[index])
+            
             # Création de l'objet parser
-            obj = LSFileFilter(register_number=self.config.register_init, rules_calcul=self.liste_calcul, rules_pince=self.liste_pince)
+            obj = LSFileFilter(register_number=self.config.register_init, 
+                               rules_calcul=self.liste_calcul, rules_pince=self.liste_pince)
                     
             # Création du sous programme init
-            obj1 = InitGenerator(f"{programme.stem}", self.config.alarme_value, self.config.prefixe_init, liste_do_ec[index])
+            obj1 = InitGenerator(f"{programme.name}", self.config.alarme_value, 
+                                 self.config.prefixe_init, liste_do_ec[index], self.config.register_init)
 
             # Tri des lignes MN et POS du programme d'origine
             pos_lines = obj.keep_pos(programme)
@@ -117,7 +131,7 @@ class GenInit:
             
             # Construction du sous programme d'init
             obj3 = LSFileBuilder(
-                name=f"{self.config.prefixe_init}{programme.stem}",
+                name=stem_prog_init,
                 comment=self.config.commentaire_init,
                 output_dir=self.PATH_DESTINATION
             )
@@ -125,21 +139,29 @@ class GenInit:
             obj3.add_pos_lines(pos_lines)
             obj3.build_file()
             
-        init_principale = InitGenerator(self.config.project_name, self.config.alarme_value, self.config.prefixe_init, self.config.register_programme)
+        init_principale = InitGenerator(self.config.project_name, self.config.alarme_value, self.config.prefixe_init)
 
-        init_principale.structure_select_main_register(
+        init_principale.structure_select_main_dido(
             self.liste_value_register_programme,
-            self.liste_nom_programme
+            self.liste_nom_programme, self.config.register_init
         )
-        init_principale.end_main_register(self.config.is_gst_rebut, self.config.is_gst_prehenseur, self.config.programme_rebut, self.config.programme_prehenseur, self.config.register_prehenseur)
+        init_principale.end_main_dido(self.config.is_gst_rebut, 
+                                      self.config.is_gst_prehenseur, 
+                                      self.config.programme_rebut, 
+                                      self.config.programme_prehenseur, 
+                                      self.config.register_prehenseur)
 
-        init_principale_file = LSFileBuilder(name=f"{self.config.prefixe_init}{self.config.main_name}", comment=self.config.commentaire_init, output_dir=self.PATH_DESTINATION)
+        init_principale_file = LSFileBuilder(name=f"{self.config.prefixe_init}{self.config.main_name}", 
+                                             comment=self.config.commentaire_init, output_dir=self.PATH_DESTINATION)
         init_principale_file.add_mn_lines(init_principale.bloc)
         init_principale_file.build_file()
             
     def gst_register(self):
         
         for programme in self.liste_programme:
+
+            # Création du nom du sous programme d'init
+            stem_prog_init = f"{self.config.prefixe_init}{programme.stem}"
            
             # Création de l'objet parser
             sub_obj = LSFileFilter()
@@ -152,22 +174,23 @@ class GenInit:
                     
             # Vérifie la conformité du programme
             if last_value is None:
+                self.console.warning(f"{programme.name} : absence de registre programme")
                 print(f"{programme.name} : absence de registre programme")
-                last_value = 0
                 if self.config.abort_on_missing_argument:
                     continue
+                last_value = 0
+                self.liste_nom_programme.append(stem_prog_init)
+                self.liste_value_register_programme.append(last_value)
             else:
                 last_value = int(last_value)
-                
-            # Stockage
-            self.liste_nom_programme.append(programme.stem)
-            self.liste_value_register_programme.append(last_value)
-                        
+                self.liste_nom_programme.append(stem_prog_init)
+                self.liste_value_register_programme.append(last_value)
+            
             # Création de l'objet parser
             obj = LSFileFilter(register_number=self.config.register_init, rules_calcul=self.liste_calcul, rules_pince=self.liste_pince)
                     
             # Création du sous programme init
-            obj1 = InitGenerator(f"{programme.stem}", self.config.alarme_value, prefixe_init=self.config.prefixe_init, memo_positon=self.config.register_init)
+            obj1 = InitGenerator(f"{programme.name}", self.config.alarme_value, prefixe_init=self.config.prefixe_init, memo_positon=self.config.register_init)
 
             # Tri des lignes MN et POS du programme d'origine
             pos_lines = obj.keep_pos(programme)
@@ -192,7 +215,7 @@ class GenInit:
 
             # Construction du sous programme d'init
             obj3 = LSFileBuilder(
-                name=f"{self.config.prefixe_init}{programme.stem}",
+                name=stem_prog_init,
                 comment=self.config.commentaire_init,
                 output_dir=self.PATH_DESTINATION
             )
@@ -200,13 +223,17 @@ class GenInit:
             obj3.add_pos_lines(pos_lines)
             obj3.build_file()
 
-        init_principale = InitGenerator(self.config.project_name, self.config.alarme_value, self.config.prefixe_init, self.config.register_programme)
+        init_principale = InitGenerator(self.config.project_name, self.config.alarme_value, self.config.prefixe_init, memo_positon=self.config.register_programme)
 
         init_principale.structure_select_main_register(
             self.liste_value_register_programme,
             self.liste_nom_programme
         )
-        init_principale.end_main_register(self.config.is_gst_rebut, self.config.is_gst_prehenseur, self.config.programme_rebut, self.config.programme_prehenseur, self.config.register_prehenseur)
+        init_principale.end_main_register(self.config.is_gst_rebut, 
+                                          self.config.is_gst_prehenseur, 
+                                          self.config.programme_rebut, 
+                                          self.config.programme_prehenseur, 
+                                          self.config.register_prehenseur)
 
         init_principale_file = LSFileBuilder(name=f"{self.config.prefixe_init}{self.config.main_name}", comment=self.config.commentaire_init, output_dir=self.PATH_DESTINATION)
         init_principale_file.add_mn_lines(init_principale.bloc)
@@ -220,6 +247,14 @@ class GenInit:
         shutil.rmtree(PATH_EDIT, ignore_errors=True)
         shutil.copytree(PATH_SOURCE, PATH_EDIT)
 
+        # Renomer fichiers en majuscules
+        for root, _, files in os.walk(PATH_EDIT):
+            for file in files:
+                os.rename(
+                    os.path.join(root, file),
+                    os.path.join(root, file.upper())
+                )
+
         # Récupération des fichiers
         self.liste_programme = get_fichiers(PATH_EDIT, root=True)
         self.liste_calcul = get_fichiers(PATH_CALCUL)
@@ -232,8 +267,9 @@ class GenInit:
 
         
 class EditInit:
-    def __init__(self, config : EditInitConfig):
+    def __init__(self, config : EditInitConfig, console=None):
         self.config = config
+        self.console = console
 
         self.main()
 

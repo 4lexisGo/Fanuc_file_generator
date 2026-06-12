@@ -25,7 +25,7 @@ class GenerationInitPage(ctk.CTkFrame):
             self,
             text="Génération INIT",
             font=ctk.CTkFont(size=22, weight="bold")
-        ).grid(row=0, column=0, sticky="w", padx=10, pady=20)
+        ).grid(row=0, column=0, sticky="w", padx=10, pady=10)
 
         # MAIN FORM
         self.form = ctk.CTkFrame(self)
@@ -281,12 +281,12 @@ class GenerationInitPage(ctk.CTkFrame):
         self._build_liste_di(row)
         self._build_start_stop_di(row)
 
-        self.methode_selection.set("Start-Stop")
+        self.methode_selection.set("Liste")
 
         self.di_start_stop_frame.grid_remove()
         self.di_liste_frame.grid_remove()
 
-        self._on_methode_changed("Start-Stop")
+        self._on_methode_changed("Liste")
 
     def _build_start_stop_di(self, row):
         self.di_start_stop_frame.grid_columnconfigure(1, weight=1)
@@ -305,11 +305,18 @@ class GenerationInitPage(ctk.CTkFrame):
 
         
     def _edit_values(self):
-        self.main_name.insert(0, "SAB01")
+        self.main_name.insert(0, "CYCLE1")
         self.prefixe_init.insert(0, "INIT_")
         self.commentaire_init.insert(0, "Génération automatique")
         self.speed_linear.insert(0, "100")
         self.speed_joint.insert(0, "10")
+
+        self.path_global.insert(0, "C:/Users/alexis.gosetto/Desktop/TEST")
+        self.project_name.insert(0, "CHASSIGNOL")
+        self.register_position.insert(0, "99")
+        self.alarme_value.insert(0, "100")
+        self.do_start.insert(0, "40")
+        self.di_liste_raw.insert(0, "40,42,44,46,48,50,52,53")
 
     def _build_config(self):
         
@@ -410,9 +417,9 @@ class GenerationInitPage(ctk.CTkFrame):
             )
 
     def _run_generation(self):
-
+        self.app.console.clear()
         self.app.console.log("Début génération INIT...")
 
-        GenInit(self._build_config())
+        GenInit(self._build_config(), self.app.console)
 
         self.app.console.log("Génération terminée avec succès")
