@@ -124,9 +124,6 @@ class PalpageCentreOutils:
             "direction": direction,
         }
         
-        return
-        
-        
     def set_cercle_ext(self, centre , n , i, j):
         """
         Génère le point d'approche pour le palpage du cercle extérieur

@@ -3,13 +3,11 @@ name = "fanuc-file-generator"
 version = "0.1.0"
 description = ""
 authors = [
-    {name = "Alexis GOSETTO",email = "algo4203@gmail.com"}
+    {name = "4lexisGo"}
 ]
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
 dependencies = [
-    "customtkinter (>=5.2.2,<6.0.0)",
-    "ctktooltip (>=0.9,<0.10)"
 ]
 
 [tool.poetry]
@@ -19,7 +17,3 @@ packages = [{include = "fanuc_file_generator", from = "src"}]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[dependency-groups]
-dev = [
-    "pyinstaller (>=6.20.0,<7.0.0)"
-]
