@@ -9,17 +9,6 @@ Ce package se concentre sur :
 - la génération de routines de palpage Renishaw (`probing`),
 - les utilitaires de gestion de fichiers et de géométrie (`utils`).
 
-## Table des matières
-
-- [À propos](#%C3%A0-propos)
-- [Fonctionnalités](#fonctionnalit%C3%A9s)
-- [Installation](#installation)
-- [Utilisation](#utilisation)
-- [API principale](#api-principale)
-- [Structure du projet](#structure-du-projet)
-- [Développement](#d%C3%A9veloppement)
-- [Licence](#licence)
-
 ## Fonctionnalités
 
 - Création de fichiers Fanuc LS complets avec sections `/PROG`, `/MN`, `/POS`, `/END`.
@@ -49,15 +38,15 @@ poetry run python -m pip install -e .
 3. Si le package est publié sur PyPI à l'avenir :
 
 ```bash
-pip install fanuc-file-generator
+pip install fanucfilegenerator
 ```
 
 ## Utilisation
 
-Importer le package et utiliser ses classes exposées par `fanuc_file_generator` :
+Importer le package et utiliser ses classes exposées par `FanucFileGenerator` :
 
 ```python
-from fanuc_file_generator import (
+from FanucFileGenerator import (
     LSFileBuilder,
     LSFileEditer,
     LSFileFilter,
@@ -93,7 +82,7 @@ bloc += Renishaw().palpage_cercle_ext(1, 'S1')
 
 ## API principale
 
-Les classes et fonctions exportées depuis `src/fanuc_file_generator/__init__.py` sont :
+Les classes et fonctions exportées depuis `src/FanucFileGenerator/__init__.py` sont :
 
 - `InitGenerator` — génération de routines d'init et de sélection de parcours.
 - `LSFileBuilder` — construction de fichiers LS et sections `/MN` et `/POS`.
@@ -110,11 +99,11 @@ Les classes et fonctions exportées depuis `src/fanuc_file_generator/__init__.py
 
 ## Structure du projet
 
-- `src/fanuc_file_generator/__init__.py` : point d'entrée du package.
-- `src/fanuc_file_generator/folding/` : génération de programmes de repli automatique.
-- `src/fanuc_file_generator/ls_generating/` : génération, modification et parsing des fichiers Fanuc LS.
-- `src/fanuc_file_generator/probing/` : génération des routines de palpage Renishaw et des templates associés.
-- `src/fanuc_file_generator/utils/` : utilitaires de fichiers, géométrie et nommage.
+- `src/FanucFileGenerator/__init__.py` : point d'entrée du package.
+- `src/FanucFileGenerator/folding/` : génération de programmes de repli automatique.
+- `src/FanucFileGenerator/ls_generating/` : génération, modification et parsing des fichiers Fanuc LS.
+- `src/FanucFileGenerator/probing/` : génération des routines de palpage Renishaw et des templates associés.
+- `src/FanucFileGenerator/utils/` : utilitaires de fichiers, géométrie et nommage.
 
 ## Développement
 
@@ -122,8 +111,16 @@ Ce package est prévu pour être utilisé comme module ; cependant, il peut auss
 
 - Pour étendre le package, ajoutez des fonctions ou classes dans les sous-modules existants.
 - Pour personnaliser la génération, créez vos propres templates dans un projet séparé et utilisez l'API du package.
-- Préférez l'importation de classes depuis `fanuc_file_generator` plutôt que l'édition directe du code installé.
+- Préférez l'importation de classes depuis `FanucFileGenerator` plutôt que l'édition directe du code installé.
 - Si vous modifiez le package, utilisez un environnement virtuel ou Poetry pour isoler vos tests.
+
+## Améliorations à venir
+
+- `src/FanucFileGenerator/folding/` : Detecter les appels de programme de mouvement à l'interieur d'un programme
+                                        Prévoir un dossier de sous programmes de mouvement pour les exclures du "select principal"
+                                        Continuer l'incrémentation du registre de mouvement dans ces sous programmes
+                                        Inclure l'appel des sous programmes dans le programme de repli
+                                        Genener ces sous programme de repli
 
 ## Licence
 

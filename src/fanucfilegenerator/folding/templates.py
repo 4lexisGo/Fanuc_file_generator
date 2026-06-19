@@ -70,7 +70,7 @@ class InitGenerator:
             self.bloc.append(f"            {pattern}")
             
         self.bloc.extend([
-            "            =ELSE, JMP LBL[997]",
+            "            ELSE, JMP LBL[997]",
             "",
             "JMP LBL[999]"                         
             ])

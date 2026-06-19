@@ -1,4 +1,4 @@
-from fanuc_file_generator.utils.geometrie import point_cercle_portion
+from fanucfilegenerator.utils.geometrie import point_cercle_portion
 
 class PalpageCentreOutils:
     """
